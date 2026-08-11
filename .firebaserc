@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "instantatoz"
+  },
+  "targets": {
+    "instantatoz": {
+      "hosting": {
+        "web": [
+          "instantatoz"
+        ],
+        "admin": [
+          "instantatoz-admin"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

@@ -1,0 +1,149 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================
+    // Helper functions
+    // =========================================================
+
+    // Is the request from an authenticated user?
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Is the authenticated user the owner of this document?
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    // Is the incoming data a valid string field?
+    function isValidString(field, minLen, maxLen) {
+      return field is string && field.size() >= minLen && field.size() <= maxLen;
+    }
+
+    // =========================================================
+    // users — customer profiles
+    // =========================================================
+    match /users/{userId} {
+      // Users can read and write only their own profile
+      allow read, update, delete: if isOwner(userId);
+      // Allow creating own profile after phone auth
+      allow create: if isOwner(userId);
+    }
+
+    // =========================================================
+    // workers — worker profiles
+    // =========================================================
+    match /workers/{workerId} {
+      // Authenticated users can read worker profiles (for matching)
+      allow read: if isAuth();
+      // Workers can only write their own profile
+      allow create: if isOwner(workerId);
+      allow update: if isOwner(workerId);
+      // Deletion only via admin SDK (Cloud Functions)
+      allow delete: if false;
+    }
+
+    // =========================================================
+    // jobs — job postings
+    // =========================================================
+    match /jobs/{jobId} {
+      // Any authenticated user can read jobs (needed for worker matching)
+      allow read: if isAuth();
+      // Only authenticated customers can create jobs
+      allow create: if isAuth()
+        && isValidString(request.resource.data.customerId, 1, 128)
+        && request.resource.data.customerId == request.auth.uid;
+      // Only the job creator or assigned worker can update
+      allow update: if isAuth()
+        && (resource.data.customerId == request.auth.uid
+            || resource.data.workerId == request.auth.uid);
+      // Jobs cannot be deleted (soft-delete via status field)
+      allow delete: if false;
+    }
+
+    // =========================================================
+    // payments — payment records
+    // =========================================================
+    match /payments/{paymentId} {
+      // Only the customer involved can read their payment
+      allow read: if isAuth()
+        && resource.data.customerId == request.auth.uid;
+      // Payments are created and updated only by server (Cloud Functions)
+      allow write: if false;
+    }
+
+    // =========================================================
+    // payouts — worker payout records
+    // =========================================================
+    match /payouts/{payoutId} {
+      // Only the worker can read their payout
+      allow read: if isAuth()
+        && resource.data.workerId == request.auth.uid;
+      // Payouts are managed by server only
+      allow write: if false;
+    }
+
+    // =========================================================
+    // reviews — job reviews
+    // =========================================================
+    match /reviews/{reviewId} {
+      // Anyone authenticated can read reviews
+      allow read: if isAuth();
+      // Reviews can only be created by the reviewer (customerId or workerId)
+      allow create: if isAuth()
+        && request.resource.data.reviewerId == request.auth.uid
+        && isValidString(request.resource.data.comment, 0, 1000);
+      // Reviews cannot be edited or deleted after submission
+      allow update, delete: if false;
+    }
+
+    // =========================================================
+    // contact_forms — website contact form submissions
+    // =========================================================
+    match /contact_forms/{docId} {
+      // Contact forms are write-only from the website (server action)
+      // No client-side read access — admin panel only via Admin SDK
+      allow read: if false;
+      allow write: if false; // Writes go through Server Action → Admin SDK
+    }
+
+    // =========================================================
+    // support_tickets — in-app support requests
+    // =========================================================
+    match /support_tickets/{ticketId} {
+      allow read: if isAuth()
+        && resource.data.userId == request.auth.uid;
+      allow create: if isAuth()
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // =========================================================
+    // categories — service categories (read-only for all)
+    // =========================================================
+    match /categories/{categoryId} {
+      allow read: if true;   // Public — needed for app without auth
+      allow write: if false; // Admin SDK only
+    }
+
+    // =========================================================
+    // notifications — per-user notifications
+    // =========================================================
+    match /notifications/{notificationId} {
+      allow read: if isAuth()
+        && resource.data.userId == request.auth.uid;
+      allow update: if isAuth()
+        && resource.data.userId == request.auth.uid; // Mark as read
+      allow create, delete: if false; // Server only
+    }
+
+    // =========================================================
+    // Default: deny everything else
+    // =========================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

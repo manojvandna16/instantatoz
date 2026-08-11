@@ -1,0 +1,30 @@
+# =============================================================
+# Instantatoz NestJS Backend — .gitignore
+# =============================================================
+
+# Environment variables — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Test coverage
+coverage/
