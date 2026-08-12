@@ -11,9 +11,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, adminUser, loading } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && !user) router.replace('/');
-  }, [user, loading, router]);
+  // Removed auto-redirect to prevent infinite loops during debug
+  // useEffect(() => {
+  //   if (!loading && !user) router.replace('/');
+  // }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -23,7 +24,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (!user || !adminUser) return null;
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4">
+        <h1 className="text-2xl font-bold text-white mb-2">Authentication Lost</h1>
+        <p className="text-gray-400 text-center mb-6">Your session was lost during navigation. This could be due to browser privacy settings blocking IndexedDB.</p>
+        <button onClick={() => window.location.href = '/'} className="px-6 py-2 bg-blue-600 text-white rounded-lg">Return to Login</button>
+      </div>
+    );
+  }
+
+  if (!adminUser) return null;
 
   return (
     <div className="flex h-screen bg-gray-950 overflow-hidden">
