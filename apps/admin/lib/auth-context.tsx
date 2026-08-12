@@ -42,11 +42,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setAdminUser({ uid: firebaseUser.uid, email: firebaseUser.email!, ...adminDoc.data() } as AdminUser);
           } else {
             // Fallback for this specific user if Firestore check fails for any reason
-            setAdminUser({ uid: firebaseUser.uid, email: firebaseUser.email!, role: 'SUPER_ADMIN', name: 'Admin', createdAt: new Date(), active: true });
+            setAdminUser({ uid: firebaseUser.uid, email: firebaseUser.email!, role: 'SUPER_ADMIN', name: 'Admin', createdAt: new Date().toISOString(), active: true });
           }
         } catch {
           // Fallback if permission denied
-          setAdminUser({ uid: firebaseUser.uid, email: firebaseUser.email!, role: 'SUPER_ADMIN', name: 'Admin', createdAt: new Date(), active: true });
+          setAdminUser({ uid: firebaseUser.uid, email: firebaseUser.email!, role: 'SUPER_ADMIN', name: 'Admin', createdAt: new Date().toISOString(), active: true });
         }
       } else {
         setUser(null);
