@@ -16,9 +16,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      window.location.href = '/dashboard';
+      router.push('/dashboard');
     }
-  }, [user, loading]);
+  }, [user, loading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +26,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await login(email, password);
-      window.location.href = '/dashboard';
+      router.push('/dashboard');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(msg.includes('not authorized') ? msg : 'Invalid email or password. Access denied.');
@@ -60,7 +60,7 @@ export default function LoginPage() {
               <Shield className="w-7 h-7 text-white" />
             </div>
             <h1 className="text-xl font-bold text-white">Instantatoz Admin</h1>
-            <p className="text-sm text-gray-400 mt-1">Operations Control Center</p>
+            <p className="text-sm text-gray-400 mt-1">Operations Control Center (v3)</p>
           </div>
 
           {/* Warning banner */}
