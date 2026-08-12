@@ -24,9 +24,11 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await login(email, password);
+      alert('Login function completed! Now attempting to navigate to Dashboard...');
       router.replace('/dashboard');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
+      alert(`Login Failed! Error: ${msg}`);
       setError(`DEBUG ERROR: ${msg}`);
     } finally {
       setIsLoading(false);
