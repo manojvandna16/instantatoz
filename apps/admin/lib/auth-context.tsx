@@ -37,8 +37,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (firebaseUser) {
         setUser(firebaseUser);
         try {
-          const adminDoc = await getDoc(doc(firebaseDb, 'admins', firebaseUser.uid));
-          if (adminDoc.exists()) {
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 5000));
+          const adminDoc = await Promise.race([
+            getDoc(doc(firebaseDb, 'admins', firebaseUser.uid)),
+            timeoutPromise
+          ]) as any;
+          if (adminDoc && adminDoc.exists && adminDoc.exists()) {
             setAdminUser({ uid: firebaseUser.uid, email: firebaseUser.email!, ...adminDoc.data() } as AdminUser);
           } else {
             // Fallback for this specific user if Firestore check fails for any reason
@@ -63,8 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const cred = await signInWithEmailAndPassword(firebaseAuth, email, password);
     
     try {
-      const adminDoc = await getDoc(doc(firebaseDb, 'admins', cred.user.uid));
-      if (!adminDoc.exists() && email !== 'manojbhatt900@gmail.com') {
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 5000));
+      const adminDoc = await Promise.race([
+        getDoc(doc(firebaseDb, 'admins', cred.user.uid)),
+        timeoutPromise
+      ]) as any;
+      if (!adminDoc || !adminDoc.exists || (!adminDoc.exists() && email !== 'manojbhatt900@gmail.com')) {
         await signOut(firebaseAuth);
         throw new Error('Access denied. This account is not authorized as an admin.');
       }
