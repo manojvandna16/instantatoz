@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { getFirebaseDb } from '@/lib/firebase'; const db = getFirebaseDb();
+import { getFirebaseDb } from '@/lib/firebase';
 import { MapPin, ChevronRight, Users, HardHat, Briefcase, TrendingUp } from 'lucide-react';
 
 interface LocationStat {
@@ -24,6 +24,7 @@ export default function LocationAnalyticsPage() {
   const [selectedDistrict, setSelectedDistrict] = useState('Uttarkashi');
 
   useEffect(() => {
+    const db = getFirebaseDb();
     // Users by district
     const u1 = onSnapshot(collection(db, 'users'), snap => {
       const byDistrict: Record<string, number> = {};

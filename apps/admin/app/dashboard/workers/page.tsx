@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { getFirebaseDb } from '@/lib/firebase'; const db = getFirebaseDb();
+import { getFirebaseDb } from '@/lib/firebase';
 import { Search, Filter, CheckCircle, Clock, XCircle, AlertTriangle, Eye, UserCheck, UserX, Ban } from 'lucide-react';
 import type { Worker } from '@/types';
 import { clsx } from 'clsx';
@@ -34,6 +34,7 @@ export default function WorkersPage() {
   const [filterVerification, setFilterVerification] = useState('ALL');
 
   useEffect(() => {
+    const db = getFirebaseDb();
     const q = query(collection(db, 'workers'), orderBy('joinedAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
       setWorkers(snap.docs.map(d => ({ uid: d.id, ...d.data() } as Worker)));

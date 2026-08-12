@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
-import { getFirebaseDb } from '@/lib/firebase'; const db = getFirebaseDb();
+import { getFirebaseDb } from '@/lib/firebase';
 import { Clock, CheckCircle, XCircle, Info, AlertTriangle, Eye } from 'lucide-react';
 import type { Worker } from '@/types';
 import { clsx } from 'clsx';
@@ -12,6 +12,7 @@ export default function WorkerVerificationPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const db = getFirebaseDb();
     const q = query(
       collection(db, 'workers'),
       where('verificationStatus', '==', 'PENDING'),

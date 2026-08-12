@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { getFirebaseDb } from '@/lib/firebase'; const db = getFirebaseDb();
+import { getFirebaseDb } from '@/lib/firebase';
 import { Search, CreditCard, TrendingUp, TrendingDown } from 'lucide-react';
 import type { Payment } from '@/types';
 import { clsx } from 'clsx';
@@ -26,6 +26,7 @@ export default function PaymentsPage() {
   const [filterStatus, setFilterStatus] = useState('ALL');
 
   useEffect(() => {
+    const db = getFirebaseDb();
     const q = query(collection(db, 'payments'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
       setPayments(snap.docs.map(d => ({ id: d.id, ...d.data() } as Payment)));

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { getFirebaseDb } from '@/lib/firebase'; const db = getFirebaseDb();
+import { getFirebaseDb } from '@/lib/firebase';
 import { Search, Users as UsersIcon, Eye } from 'lucide-react';
 
 interface UserRecord {
@@ -21,6 +21,7 @@ export default function UsersPage() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
+    const db = getFirebaseDb();
     const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
       setUsers(snap.docs.map(d => ({ uid: d.id, ...d.data() } as UserRecord)));

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, orderBy, doc, updateDoc } from 'firebase/firestore';
-import { getFirebaseDb } from '@/lib/firebase'; const db = getFirebaseDb();
+import { getFirebaseDb } from '@/lib/firebase';
 import { MessageSquareWarning, Eye, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 import type { Complaint } from '@/types';
 import { clsx } from 'clsx';
@@ -24,6 +24,7 @@ export default function ComplaintsPage() {
   const [filterStatus, setFilterStatus] = useState('ALL');
 
   useEffect(() => {
+    const db = getFirebaseDb();
     const q = query(collection(db, 'complaints'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
       setComplaints(snap.docs.map(d => ({ id: d.id, ...d.data() } as Complaint)));

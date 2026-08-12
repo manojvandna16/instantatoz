@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { getFirebaseDb } from '@/lib/firebase'; const db = getFirebaseDb();
+import { getFirebaseDb } from '@/lib/firebase';
 import { Zap, Search, HardHat, Briefcase, AlertTriangle, RefreshCw, Clock } from 'lucide-react';
 import type { Job, Worker } from '@/types';
 import { clsx } from 'clsx';
@@ -15,6 +15,7 @@ export default function LiveOperationsPage() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   useEffect(() => {
+    const db = getFirebaseDb();
     const unsubs: (() => void)[] = [];
 
     unsubs.push(onSnapshot(query(collection(db, 'jobs'), where('status', '==', 'SEARCHING')), snap => {

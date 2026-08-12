@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { getFirebaseDb } from '@/lib/firebase'; const db = getFirebaseDb();
+import { getFirebaseDb } from '@/lib/firebase';
 import { Search, Eye, MapPin } from 'lucide-react';
 import type { Job } from '@/types';
 import { clsx } from 'clsx';
@@ -28,6 +28,7 @@ export default function JobsPage() {
   const [filterStatus, setFilterStatus] = useState('ALL');
 
   useEffect(() => {
+    const db = getFirebaseDb();
     const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
       setJobs(snap.docs.map(d => ({ id: d.id, ...d.data() } as Job)));

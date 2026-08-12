@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, where, Timestamp } from 'firebase/firestore';
-import { getFirebaseDb } from '@/lib/firebase'; const db = getFirebaseDb();
+import { getFirebaseDb } from '@/lib/firebase';
 import {
   Users, HardHat, CheckCircle, Clock, Wifi, WifiOff, Briefcase,
   Search, PlayCircle, CheckSquare, XCircle, CreditCard, Percent,
@@ -63,6 +63,7 @@ export default function DashboardPage() {
   const [location] = useState('Uttarkashi District, Uttarakhand');
 
   useEffect(() => {
+    const db = getFirebaseDb();
     const unsubscribers: (() => void)[] = [];
 
     // Users
