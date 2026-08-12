@@ -26,8 +26,8 @@ export default function LoginPage() {
       await login(email, password);
       router.replace('/dashboard');
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Invalid credentials';
-      setError(msg.includes('not authorized') ? msg : 'Invalid email or password. Access denied.');
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`DEBUG ERROR: ${msg}`);
     } finally {
       setIsLoading(false);
     }
