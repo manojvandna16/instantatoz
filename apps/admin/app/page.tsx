@@ -15,8 +15,10 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) router.replace('/dashboard');
-  }, [user, loading, router]);
+    if (!loading && user) {
+      window.location.href = '/dashboard';
+    }
+  }, [user, loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
