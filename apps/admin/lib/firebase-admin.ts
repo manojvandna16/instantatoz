@@ -7,14 +7,26 @@ import { getStorage } from 'firebase-admin/storage';
 
 export function getAdminApp(): App {
   if (getApps().length > 0) return getApp();
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-  if (!privateKey || !process.env.FIREBASE_CLIENT_EMAIL) {
-    throw new Error('Firebase Admin credentials are not set in environment variables.');
+  
+  let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  if (privateKey) {
+    // Remove surrounding quotes if present (common when pasting into Vercel/env files)
+    privateKey = privateKey.replace(/^["']|["']$/g, '');
+    // Convert escaped newlines to real newlines
+    privateKey = privateKey.replace(/\\n/g, '\n');
   }
+
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.replace(/^["']|["']$/g, '');
+  const projectId = process.env.FIREBASE_PROJECT_ID?.replace(/^["']|["']$/g, '');
+
+  if (!privateKey || !clientEmail || !projectId) {
+    throw new Error('Firebase Admin credentials (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) are not fully set in environment variables.');
+  }
+
   return initializeApp({
     credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID!,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+      projectId,
+      clientEmail,
       privateKey,
     }),
     storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
