@@ -5,7 +5,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { getStorage } from 'firebase-admin/storage';
 
-function getAdminApp(): App {
+export function getAdminApp(): App {
   if (getApps().length > 0) return getApp();
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
   if (!privateKey || !process.env.FIREBASE_CLIENT_EMAIL) {
