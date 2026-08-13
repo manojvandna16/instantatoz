@@ -1,5 +1,7 @@
 // app/api/auth/session/route.ts — Session cookie management
 import { NextRequest, NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import { adminAuth } from '@/lib/firebase-admin';
 
 const SESSION_COOKIE_NAME = 'admin-session';
