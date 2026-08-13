@@ -9,13 +9,34 @@ const SESSION_EXPIRY_MS = 60 * 60 * 24 * 5 * 1000; // 5 days
 
 export async function POST(request: NextRequest) {
   try {
-    const { token } = await request.json();
-    if (!token) return NextResponse.json({ error: 'No token' }, { status: 400 });
+    console.log('[DIAGNOSTIC] POST /api/auth/session: Started');
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error('[DIAGNOSTIC] JSON_PARSE_FAILED', parseError);
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
 
-    // Verify token & create session cookie via Firebase Admin
-    const sessionCookie = await adminAuth().createSessionCookie(token, {
-      expiresIn: SESSION_EXPIRY_MS,
-    });
+    const { token } = body;
+    if (!token) {
+      console.warn('[DIAGNOSTIC] TOKEN_MISSING');
+      return NextResponse.json({ error: 'No token' }, { status: 400 });
+    }
+
+    console.log('[DIAGNOSTIC] TOKEN_RECEIVED (Length: ' + token.length + ')');
+
+    let sessionCookie;
+    try {
+      console.log('[DIAGNOSTIC] Calling createSessionCookie...');
+      sessionCookie = await adminAuth().createSessionCookie(token, {
+        expiresIn: SESSION_EXPIRY_MS,
+      });
+      console.log('[DIAGNOSTIC] SESSION_COOKIE_CREATED');
+    } catch (cookieError: any) {
+      console.error('[DIAGNOSTIC] SESSION_COOKIE_FAILED', cookieError?.code, cookieError?.message);
+      throw cookieError; // Re-throw to be caught by outer catch for the 401 response
+    }
 
     const response = NextResponse.json({ success: true });
     response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
@@ -25,8 +46,10 @@ export async function POST(request: NextRequest) {
       maxAge: SESSION_EXPIRY_MS / 1000,
       path: '/',
     });
+    console.log('[DIAGNOSTIC] COMPLETED SUCCESSFULLY');
     return response;
-  } catch {
+  } catch (error: any) {
+    console.error('[DIAGNOSTIC] CAUGHT UNHANDLED ERROR IN POST', error?.code, error?.message, error?.stack);
     return NextResponse.json({ error: 'Failed to create session' }, { status: 401 });
   }
 }
