@@ -23,25 +23,43 @@ service cloud.firestore {
     }
 
     // =========================================================
+    // counters — ID generation counters (Server-only)
+    // =========================================================
+    match /counters/{document=**} {
+      allow read, write: if false; // Only accessible via Admin SDK
+    }
+
+    // =========================================================
     // users — customer profiles
     // =========================================================
     match /users/{userId} {
-      // Users can read and write only their own profile
-      allow read, update, delete: if isOwner(userId);
-      // Allow creating own profile after phone auth
-      allow create: if isOwner(userId);
+      // Users can read only their own profile
+      allow read: if isOwner(userId);
+      // Client cannot create a user document with a userNumber (must be done server-side)
+      allow create: if false; // Only allow creation via Server Action to securely capture consent
+      allow update: if isOwner(userId) 
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userNumber', 'consent', 'status']);
+      allow delete: if false;
     }
 
     // =========================================================
     // workers — worker profiles
     // =========================================================
     match /workers/{workerId} {
-      // Authenticated users can read worker profiles (for matching)
-      allow read: if isAuth();
-      // Workers can only write their own profile
-      allow create: if isOwner(workerId);
-      allow update: if isOwner(workerId);
-      // Deletion only via admin SDK (Cloud Functions)
+      // Privacy Fix: Only the owner can read their full profile directly from the client.
+      // Other users/customers must use a secure Server Action to fetch public worker data.
+      allow read: if isOwner(workerId);
+      
+      // Client cannot create a worker directly; must go through Server Action
+      allow create: if false; 
+        
+      // Workers can update their own profile, but cannot change protected fields
+      allow update: if isOwner(workerId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
+          ['workerNumber', 'verificationStatus', 'status', 'rating', 'totalJobs', 'completedJobs', 'ratingCount', 'averageRating', 'stats', 'adminId', 'adminEmail', 'consent']
+        );
+        
+      // Deletion only via admin SDK (Cloud Functions/Server Actions)
       allow delete: if false;
     }
 

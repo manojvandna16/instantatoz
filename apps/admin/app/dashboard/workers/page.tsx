@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { getFirebaseDb } from '@/lib/firebase';
 import { Search, Filter, CheckCircle, Clock, XCircle, AlertTriangle, Eye, UserCheck, UserX, Ban } from 'lucide-react';
+import Link from 'next/link';
 import type { Worker } from '@/types';
 import { clsx } from 'clsx';
 
@@ -35,7 +36,7 @@ export default function WorkersPage() {
 
   useEffect(() => {
     const db = getFirebaseDb();
-    const q = query(collection(db, 'workers'), orderBy('joinedAt', 'desc'));
+    const q = query(collection(db, 'workers'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
       setWorkers(snap.docs.map(d => ({ uid: d.id, ...d.data() } as Worker)));
       setLoading(false);
@@ -47,6 +48,7 @@ export default function WorkersPage() {
     const matchSearch = !search ||
       w.name?.toLowerCase().includes(search.toLowerCase()) ||
       w.phone?.includes(search) ||
+      (w as any).workerNumber?.toLowerCase().includes(search.toLowerCase()) ||
       w.category?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = filterStatus === 'ALL' || w.status === filterStatus;
     const matchVerification = filterVerification === 'ALL' || w.verificationStatus === filterVerification;
@@ -73,7 +75,7 @@ export default function WorkersPage() {
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search name, phone, category..."
+            placeholder="Search name, phone, WRK-ID..."
             className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500" />
         </div>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
@@ -129,7 +131,7 @@ export default function WorkersPage() {
                       </div>
                       <div>
                         <p className="font-medium text-white text-sm">{worker.name || '—'}</p>
-                        <p className="text-xs text-gray-500">{worker.uid.slice(0, 8)}...</p>
+                        <p className="text-xs text-blue-400 font-mono">{(worker as any).workerNumber || 'WRK-PENDING'}</p>
                       </div>
                     </div>
                   </td>
@@ -156,9 +158,9 @@ export default function WorkersPage() {
                   <td className="px-4 py-3 text-gray-300">{worker.totalJobs ?? 0}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
-                      <button title="View" className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
+                      <Link href={`/dashboard/workers/${worker.uid}`} title="View" className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
                         <Eye className="w-3.5 h-3.5" />
-                      </button>
+                      </Link>
                       {worker.verificationStatus === 'PENDING' && (
                         <button title="Approve" className="p-1.5 text-gray-400 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors">
                           <UserCheck className="w-3.5 h-3.5" />

@@ -35,7 +35,7 @@ export async function submitContactForm(
   }
 
   try {
-    await adminDb.collection(COLLECTIONS.CONTACT_FORMS).add({
+    await adminDb().collection(COLLECTIONS.CONTACT_FORMS).add({
       firstName,
       lastName,
       email,

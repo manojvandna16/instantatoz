@@ -23,14 +23,19 @@ export interface AdminUser {
 
 // ─── Location Hierarchy (Expansion-Ready) ────────────────────────────────────
 export interface LocationHierarchy {
-  country: string;       // India
+  country?: string;       // India
   state: string;         // Uttarakhand
+  stateId?: string;
   district: string;      // Uttarkashi
+  districtId?: string;
   tehsil?: string;       // Bhatwari
-  block?: string;        // Block name
-  city?: string;         // City/Town
+  tehsilId?: string;
   village?: string;      // Village/Locality
-  pinCode?: string;      // 249193
+  villageId?: string;
+  address?: string;      // Additional address
+  block?: string;        
+  city?: string;         
+  pinCode?: string;      
   lat?: number;
   lng?: number;
 }

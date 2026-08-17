@@ -8,6 +8,14 @@ const nextConfig: NextConfig = {
     'firebase-admin/firestore',
     'firebase-admin/storage',
   ],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

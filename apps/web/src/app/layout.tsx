@@ -4,6 +4,7 @@ import './globals.css';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { FirebaseProvider } from '@/components/providers/FirebaseProvider';
+import { AuthProvider } from '@/components/providers/AuthProvider';
 import { siteConfig } from '@/config/site';
 
 const inter = Inter({
@@ -86,11 +87,13 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${plusJakarta.variable} font-inter antialiased bg-white text-gray-900`}
       >
-        <FirebaseProvider>
-          <Header />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
-        </FirebaseProvider>
+        <AuthProvider>
+          <FirebaseProvider>
+            <Header />
+            <main className="min-h-screen">{children}</main>
+            <Footer />
+          </FirebaseProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -360,3 +360,5 @@ export interface JobMatchingConfig {
   maxWorkersToNotify: number;
   responseTimeoutMinutes: number;
 }
+
+export * from './locations';

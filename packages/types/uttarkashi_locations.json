@@ -1,0 +1,3591 @@
+{
+  "schemaVersion": "1.0",
+  "sourceFile": "DDW_PCA0501_2011_MDDS with UI.xlsx",
+  "sourceNote": "Generated from the supplied workbook. Uttarkashi District code 56; SUB-DISTRICT entries are represented as tehsil-level entries. Village codes/names are preserved from the workbook.",
+  "scope": {
+    "stateId": "uttarakhand",
+    "stateName": "Uttarakhand",
+    "districtId": "uttarkashi",
+    "districtName": "Uttarkashi",
+    "districtCode": 56
+  },
+  "tehsils": [
+    {
+      "id": "uttarkashi-278",
+      "code": 278,
+      "name": "Puraula",
+      "villages": [
+        {
+          "id": "uttarkashi-278-40101",
+          "code": 40101,
+          "name": "Bestiwalli"
+        },
+        {
+          "id": "uttarkashi-278-40102",
+          "code": 40102,
+          "name": "Besti Palli"
+        },
+        {
+          "id": "uttarkashi-278-40103",
+          "code": 40103,
+          "name": "Rama Gaon"
+        },
+        {
+          "id": "uttarkashi-278-40104",
+          "code": 40104,
+          "name": "Raun"
+        },
+        {
+          "id": "uttarkashi-278-40105",
+          "code": 40105,
+          "name": "Gundiyar Gaon"
+        },
+        {
+          "id": "uttarkashi-278-40106",
+          "code": 40106,
+          "name": "Nagjhala"
+        },
+        {
+          "id": "uttarkashi-278-40107",
+          "code": 40107,
+          "name": "Pora"
+        },
+        {
+          "id": "uttarkashi-278-40108",
+          "code": 40108,
+          "name": "Sukdala"
+        },
+        {
+          "id": "uttarkashi-278-40109",
+          "code": 40109,
+          "name": "Moltari Rajputonki"
+        },
+        {
+          "id": "uttarkashi-278-40110",
+          "code": 40110,
+          "name": "Dhikal Gaon"
+        },
+        {
+          "id": "uttarkashi-278-40111",
+          "code": 40111,
+          "name": "Dokhariyani"
+        },
+        {
+          "id": "uttarkashi-278-40112",
+          "code": 40112,
+          "name": "Syaluka"
+        },
+        {
+          "id": "uttarkashi-278-40113",
+          "code": 40113,
+          "name": "Sar Gaon"
+        },
+        {
+          "id": "uttarkashi-278-40114",
+          "code": 40114,
+          "name": "Kaslaun"
+        },
+        {
+          "id": "uttarkashi-278-40115",
+          "code": 40115,
+          "name": "Lewtari"
+        },
+        {
+          "id": "uttarkashi-278-40116",
+          "code": 40116,
+          "name": "Digari"
+        },
+        {
+          "id": "uttarkashi-278-40117",
+          "code": 40117,
+          "name": "Kimdar"
+        },
+        {
+          "id": "uttarkashi-278-40118",
+          "code": 40118,
+          "name": "Chhanika"
+        },
+        {
+          "id": "uttarkashi-278-40119",
+          "code": 40119,
+          "name": "Paunti"
+        },
+        {
+          "id": "uttarkashi-278-40120",
+          "code": 40120,
+          "name": "Gaul"
+        },
+        {
+          "id": "uttarkashi-278-40121",
+          "code": 40121,
+          "name": "Kurara"
+        },
+        {
+          "id": "uttarkashi-278-40122",
+          "code": 40122,
+          "name": "Chhara"
+        },
+        {
+          "id": "uttarkashi-278-40123",
+          "code": 40123,
+          "name": "Angora"
+        },
+        {
+          "id": "uttarkashi-278-40124",
+          "code": 40124,
+          "name": "Shreekot"
+        },
+        {
+          "id": "uttarkashi-278-40125",
+          "code": 40125,
+          "name": "Dhundada"
+        },
+        {
+          "id": "uttarkashi-278-40126",
+          "code": 40126,
+          "name": "Dhyoralagasunali"
+        },
+        {
+          "id": "uttarkashi-278-40127",
+          "code": 40127,
+          "name": "Suranukiseri"
+        },
+        {
+          "id": "uttarkashi-278-40128",
+          "code": 40128,
+          "name": "Dhyoralagakhadkyasem"
+        },
+        {
+          "id": "uttarkashi-278-40129",
+          "code": 40129,
+          "name": "Sunali"
+        },
+        {
+          "id": "uttarkashi-278-40130",
+          "code": 40130,
+          "name": "Bhadrali"
+        },
+        {
+          "id": "uttarkashi-278-40131",
+          "code": 40131,
+          "name": "Kharkyasem"
+        },
+        {
+          "id": "uttarkashi-278-40132",
+          "code": 40132,
+          "name": "Kumarkot"
+        },
+        {
+          "id": "uttarkashi-278-40133",
+          "code": 40133,
+          "name": "Moltari"
+        },
+        {
+          "id": "uttarkashi-278-40134",
+          "code": 40134,
+          "name": "Dhampur"
+        },
+        {
+          "id": "uttarkashi-278-40135",
+          "code": 40135,
+          "name": "Koti"
+        },
+        {
+          "id": "uttarkashi-278-40136",
+          "code": 40136,
+          "name": "Devdhung"
+        },
+        {
+          "id": "uttarkashi-278-40137",
+          "code": 40137,
+          "name": "Chhiwala"
+        },
+        {
+          "id": "uttarkashi-278-40138",
+          "code": 40138,
+          "name": "Khablisera"
+        },
+        {
+          "id": "uttarkashi-278-40139",
+          "code": 40139,
+          "name": "Purola"
+        },
+        {
+          "id": "uttarkashi-278-40140",
+          "code": 40140,
+          "name": "Makhana"
+        },
+        {
+          "id": "uttarkashi-278-40141",
+          "code": 40141,
+          "name": "Molkat"
+        },
+        {
+          "id": "uttarkashi-278-40142",
+          "code": 40142,
+          "name": "Pujeli (Brahmanoki)"
+        },
+        {
+          "id": "uttarkashi-278-40143",
+          "code": 40143,
+          "name": "Kumola"
+        },
+        {
+          "id": "uttarkashi-278-40144",
+          "code": 40144,
+          "name": "Korana"
+        },
+        {
+          "id": "uttarkashi-278-40145",
+          "code": 40145,
+          "name": "Nauri"
+        },
+        {
+          "id": "uttarkashi-278-40146",
+          "code": 40146,
+          "name": "Thakrari"
+        },
+        {
+          "id": "uttarkashi-278-40147",
+          "code": 40147,
+          "name": "Lamkoti"
+        },
+        {
+          "id": "uttarkashi-278-40148",
+          "code": 40148,
+          "name": "Math"
+        },
+        {
+          "id": "uttarkashi-278-40149",
+          "code": 40149,
+          "name": "Puseli"
+        },
+        {
+          "id": "uttarkashi-278-40150",
+          "code": 40150,
+          "name": "Kandiyal Gaon"
+        },
+        {
+          "id": "uttarkashi-278-40151",
+          "code": 40151,
+          "name": "Mahargaon"
+        },
+        {
+          "id": "uttarkashi-278-40152",
+          "code": 40152,
+          "name": "Dokhari"
+        },
+        {
+          "id": "uttarkashi-278-40153",
+          "code": 40153,
+          "name": "Kufara"
+        },
+        {
+          "id": "uttarkashi-278-40154",
+          "code": 40154,
+          "name": "Dukra"
+        },
+        {
+          "id": "uttarkashi-278-40155",
+          "code": 40155,
+          "name": "Rateri"
+        },
+        {
+          "id": "uttarkashi-278-40156",
+          "code": 40156,
+          "name": "Mairiyara"
+        },
+        {
+          "id": "uttarkashi-278-40157",
+          "code": 40157,
+          "name": "Dhakaraa"
+        },
+        {
+          "id": "uttarkashi-278-40158",
+          "code": 40158,
+          "name": "Shikaru"
+        },
+        {
+          "id": "uttarkashi-278-40159",
+          "code": 40159,
+          "name": "Karara  (Kurura)"
+        },
+        {
+          "id": "uttarkashi-278-40160",
+          "code": 40160,
+          "name": "Darmara"
+        },
+        {
+          "id": "uttarkashi-278-40161",
+          "code": 40161,
+          "name": "Chaptari"
+        },
+        {
+          "id": "uttarkashi-278-40162",
+          "code": 40162,
+          "name": "Khalari"
+        },
+        {
+          "id": "uttarkashi-278-40163",
+          "code": 40163,
+          "name": "Netri"
+        },
+        {
+          "id": "uttarkashi-278-40164",
+          "code": 40164,
+          "name": "Pujeli(Khalari)"
+        },
+        {
+          "id": "uttarkashi-278-40165",
+          "code": 40165,
+          "name": "Chandeli"
+        },
+        {
+          "id": "uttarkashi-278-40166",
+          "code": 40166,
+          "name": "Sweel"
+        },
+        {
+          "id": "uttarkashi-278-40167",
+          "code": 40167,
+          "name": "Saundari"
+        },
+        {
+          "id": "uttarkashi-278-40168",
+          "code": 40168,
+          "name": "Thadung"
+        },
+        {
+          "id": "uttarkashi-278-40169",
+          "code": 40169,
+          "name": "Narasakhal Matiyalaur"
+        },
+        {
+          "id": "uttarkashi-278-40170",
+          "code": 40170,
+          "name": "Kamra"
+        },
+        {
+          "id": "uttarkashi-278-40171",
+          "code": 40171,
+          "name": "Bingadhera Talla"
+        },
+        {
+          "id": "uttarkashi-278-40172",
+          "code": 40172,
+          "name": "Bingadhera Malla"
+        },
+        {
+          "id": "uttarkashi-278-40173",
+          "code": 40173,
+          "name": "Gaind"
+        },
+        {
+          "id": "uttarkashi-278-40174",
+          "code": 40174,
+          "name": "Hudoli"
+        },
+        {
+          "id": "uttarkashi-278-40175",
+          "code": 40175,
+          "name": "Pani Gaon"
+        },
+        {
+          "id": "uttarkashi-278-40176",
+          "code": 40176,
+          "name": "Naladi"
+        },
+        {
+          "id": "uttarkashi-278-40177",
+          "code": 40177,
+          "name": "Binai"
+        },
+        {
+          "id": "uttarkashi-278-40178",
+          "code": 40178,
+          "name": "Kantari"
+        },
+        {
+          "id": "uttarkashi-278-40179",
+          "code": 40179,
+          "name": "Bhankoli"
+        },
+        {
+          "id": "uttarkashi-278-40180",
+          "code": 40180,
+          "name": "Chhamrotta"
+        },
+        {
+          "id": "uttarkashi-278-40181",
+          "code": 40181,
+          "name": "Thali"
+        },
+        {
+          "id": "uttarkashi-278-40182",
+          "code": 40182,
+          "name": "Bandiyar"
+        },
+        {
+          "id": "uttarkashi-278-40183",
+          "code": 40183,
+          "name": "Purola Range"
+        },
+        {
+          "id": "uttarkashi-278-40184",
+          "code": 40184,
+          "name": "Bhankoli"
+        }
+      ]
+    },
+    {
+      "id": "uttarkashi-279",
+      "code": 279,
+      "name": "Mori",
+      "villages": [
+        {
+          "id": "uttarkashi-279-40185",
+          "code": 40185,
+          "name": "Kiranu"
+        },
+        {
+          "id": "uttarkashi-279-40186",
+          "code": 40186,
+          "name": "Duchanu"
+        },
+        {
+          "id": "uttarkashi-279-40187",
+          "code": 40187,
+          "name": "Jagta"
+        },
+        {
+          "id": "uttarkashi-279-40188",
+          "code": 40188,
+          "name": "Chiwan"
+        },
+        {
+          "id": "uttarkashi-279-40189",
+          "code": 40189,
+          "name": "Thapali"
+        },
+        {
+          "id": "uttarkashi-279-40190",
+          "code": 40190,
+          "name": "Monda"
+        },
+        {
+          "id": "uttarkashi-279-40191",
+          "code": 40191,
+          "name": "Balawate"
+        },
+        {
+          "id": "uttarkashi-279-40192",
+          "code": 40192,
+          "name": "Adasu"
+        },
+        {
+          "id": "uttarkashi-279-40193",
+          "code": 40193,
+          "name": "Dhara"
+        },
+        {
+          "id": "uttarkashi-279-40194",
+          "code": 40194,
+          "name": "Barnali"
+        },
+        {
+          "id": "uttarkashi-279-40195",
+          "code": 40195,
+          "name": "Gokul"
+        },
+        {
+          "id": "uttarkashi-279-40196",
+          "code": 40196,
+          "name": "Jhotari"
+        },
+        {
+          "id": "uttarkashi-279-40197",
+          "code": 40197,
+          "name": "Dagoli"
+        },
+        {
+          "id": "uttarkashi-279-40198",
+          "code": 40198,
+          "name": "Makuri"
+        },
+        {
+          "id": "uttarkashi-279-40199",
+          "code": 40199,
+          "name": "Arakot"
+        },
+        {
+          "id": "uttarkashi-279-40200",
+          "code": 40200,
+          "name": "Damti Thunara"
+        },
+        {
+          "id": "uttarkashi-279-40201",
+          "code": 40201,
+          "name": "Kalich"
+        },
+        {
+          "id": "uttarkashi-279-40202",
+          "code": 40202,
+          "name": "Maijyani"
+        },
+        {
+          "id": "uttarkashi-279-40203",
+          "code": 40203,
+          "name": "Bhutanu"
+        },
+        {
+          "id": "uttarkashi-279-40204",
+          "code": 40204,
+          "name": "Gamri"
+        },
+        {
+          "id": "uttarkashi-279-40205",
+          "code": 40205,
+          "name": "Kirauli"
+        },
+        {
+          "id": "uttarkashi-279-40206",
+          "code": 40206,
+          "name": "Pawlee"
+        },
+        {
+          "id": "uttarkashi-279-40207",
+          "code": 40207,
+          "name": "Begal"
+        },
+        {
+          "id": "uttarkashi-279-40208",
+          "code": 40208,
+          "name": "Kukrera"
+        },
+        {
+          "id": "uttarkashi-279-40209",
+          "code": 40209,
+          "name": "Bhankwar"
+        },
+        {
+          "id": "uttarkashi-279-40210",
+          "code": 40210,
+          "name": "Dewti"
+        },
+        {
+          "id": "uttarkashi-279-40211",
+          "code": 40211,
+          "name": "Thalee"
+        },
+        {
+          "id": "uttarkashi-279-40212",
+          "code": 40212,
+          "name": "Bamsu"
+        },
+        {
+          "id": "uttarkashi-279-40213",
+          "code": 40213,
+          "name": "Odata"
+        },
+        {
+          "id": "uttarkashi-279-40214",
+          "code": 40214,
+          "name": "Saransh"
+        },
+        {
+          "id": "uttarkashi-279-40215",
+          "code": 40215,
+          "name": "Petri"
+        },
+        {
+          "id": "uttarkashi-279-40216",
+          "code": 40216,
+          "name": "Sewa"
+        },
+        {
+          "id": "uttarkashi-279-40217",
+          "code": 40217,
+          "name": "Gawalgaun"
+        },
+        {
+          "id": "uttarkashi-279-40218",
+          "code": 40218,
+          "name": "Masari"
+        },
+        {
+          "id": "uttarkashi-279-40219",
+          "code": 40219,
+          "name": "Khanna"
+        },
+        {
+          "id": "uttarkashi-279-40220",
+          "code": 40220,
+          "name": "Wari"
+        },
+        {
+          "id": "uttarkashi-279-40221",
+          "code": 40221,
+          "name": "Halywari"
+        },
+        {
+          "id": "uttarkashi-279-40222",
+          "code": 40222,
+          "name": "Doni"
+        },
+        {
+          "id": "uttarkashi-279-40223",
+          "code": 40223,
+          "name": "Satta"
+        },
+        {
+          "id": "uttarkashi-279-40224",
+          "code": 40224,
+          "name": "Bhitri"
+        },
+        {
+          "id": "uttarkashi-279-40225",
+          "code": 40225,
+          "name": "Dewal"
+        },
+        {
+          "id": "uttarkashi-279-40226",
+          "code": 40226,
+          "name": "Pujeli"
+        },
+        {
+          "id": "uttarkashi-279-40227",
+          "code": 40227,
+          "name": "Khanyasani"
+        },
+        {
+          "id": "uttarkashi-279-40228",
+          "code": 40228,
+          "name": "Kotgaon"
+        },
+        {
+          "id": "uttarkashi-279-40229",
+          "code": 40229,
+          "name": "Sidri"
+        },
+        {
+          "id": "uttarkashi-279-40230",
+          "code": 40230,
+          "name": "Sankari"
+        },
+        {
+          "id": "uttarkashi-279-40231",
+          "code": 40231,
+          "name": "Saur"
+        },
+        {
+          "id": "uttarkashi-279-40232",
+          "code": 40232,
+          "name": "Sirga"
+        },
+        {
+          "id": "uttarkashi-279-40233",
+          "code": 40233,
+          "name": "Panw Malla"
+        },
+        {
+          "id": "uttarkashi-279-40234",
+          "code": 40234,
+          "name": "Panw Talla"
+        },
+        {
+          "id": "uttarkashi-279-40235",
+          "code": 40235,
+          "name": "Saturi"
+        },
+        {
+          "id": "uttarkashi-279-40236",
+          "code": 40236,
+          "name": "Sunkundi"
+        },
+        {
+          "id": "uttarkashi-279-40237",
+          "code": 40237,
+          "name": "Jakhol"
+        },
+        {
+          "id": "uttarkashi-279-40238",
+          "code": 40238,
+          "name": "Sauni"
+        },
+        {
+          "id": "uttarkashi-279-40239",
+          "code": 40239,
+          "name": "Dhara"
+        },
+        {
+          "id": "uttarkashi-279-40240",
+          "code": 40240,
+          "name": "Fitari"
+        },
+        {
+          "id": "uttarkashi-279-40241",
+          "code": 40241,
+          "name": "Regcha"
+        },
+        {
+          "id": "uttarkashi-279-40242",
+          "code": 40242,
+          "name": "Kasla"
+        },
+        {
+          "id": "uttarkashi-279-40243",
+          "code": 40243,
+          "name": "Rala"
+        },
+        {
+          "id": "uttarkashi-279-40244",
+          "code": 40244,
+          "name": "Liwari"
+        },
+        {
+          "id": "uttarkashi-279-40245",
+          "code": 40245,
+          "name": "Gangar"
+        },
+        {
+          "id": "uttarkashi-279-40246",
+          "code": 40246,
+          "name": "Dhatmeer"
+        },
+        {
+          "id": "uttarkashi-279-40247",
+          "code": 40247,
+          "name": "Pawani"
+        },
+        {
+          "id": "uttarkashi-279-40248",
+          "code": 40248,
+          "name": "Osala"
+        },
+        {
+          "id": "uttarkashi-279-40249",
+          "code": 40249,
+          "name": "Mautar"
+        },
+        {
+          "id": "uttarkashi-279-40250",
+          "code": 40250,
+          "name": "Salra"
+        },
+        {
+          "id": "uttarkashi-279-40251",
+          "code": 40251,
+          "name": "Bainol"
+        },
+        {
+          "id": "uttarkashi-279-40252",
+          "code": 40252,
+          "name": "Nuranu"
+        },
+        {
+          "id": "uttarkashi-279-40253",
+          "code": 40253,
+          "name": "Kalap"
+        },
+        {
+          "id": "uttarkashi-279-40254",
+          "code": 40254,
+          "name": "Naitwar"
+        },
+        {
+          "id": "uttarkashi-279-40255",
+          "code": 40255,
+          "name": "Gainchwan Gaon"
+        },
+        {
+          "id": "uttarkashi-279-40256",
+          "code": 40256,
+          "name": "Dewara"
+        },
+        {
+          "id": "uttarkashi-279-40257",
+          "code": 40257,
+          "name": "Gurari"
+        },
+        {
+          "id": "uttarkashi-279-40258",
+          "code": 40258,
+          "name": "Pasa"
+        },
+        {
+          "id": "uttarkashi-279-40259",
+          "code": 40259,
+          "name": "Nanai"
+        },
+        {
+          "id": "uttarkashi-279-40260",
+          "code": 40260,
+          "name": "Nitusa"
+        },
+        {
+          "id": "uttarkashi-279-40261",
+          "code": 40261,
+          "name": "Bigsari"
+        },
+        {
+          "id": "uttarkashi-279-40262",
+          "code": 40262,
+          "name": "Dobhal Gaon"
+        },
+        {
+          "id": "uttarkashi-279-40263",
+          "code": 40263,
+          "name": "Kharsari"
+        },
+        {
+          "id": "uttarkashi-279-40264",
+          "code": 40264,
+          "name": "Danda Gaon"
+        },
+        {
+          "id": "uttarkashi-279-40265",
+          "code": 40265,
+          "name": "Ramal Gaon"
+        },
+        {
+          "id": "uttarkashi-279-40266",
+          "code": 40266,
+          "name": "Khedmi"
+        },
+        {
+          "id": "uttarkashi-279-40267",
+          "code": 40267,
+          "name": "Devjani"
+        },
+        {
+          "id": "uttarkashi-279-40268",
+          "code": 40268,
+          "name": "Jewanu"
+        },
+        {
+          "id": "uttarkashi-279-40269",
+          "code": 40269,
+          "name": "Kamra"
+        },
+        {
+          "id": "uttarkashi-279-40270",
+          "code": 40270,
+          "name": "Kunara"
+        },
+        {
+          "id": "uttarkashi-279-40271",
+          "code": 40271,
+          "name": "Ludrala"
+        },
+        {
+          "id": "uttarkashi-279-40272",
+          "code": 40272,
+          "name": "Pokhri"
+        },
+        {
+          "id": "uttarkashi-279-40273",
+          "code": 40273,
+          "name": "Paisar"
+        },
+        {
+          "id": "uttarkashi-279-40274",
+          "code": 40274,
+          "name": "Suchan Gaon"
+        },
+        {
+          "id": "uttarkashi-279-40275",
+          "code": 40275,
+          "name": "Dargar Gaon"
+        },
+        {
+          "id": "uttarkashi-279-40276",
+          "code": 40276,
+          "name": "Haltari"
+        },
+        {
+          "id": "uttarkashi-279-40277",
+          "code": 40277,
+          "name": "Kotigad Range"
+        },
+        {
+          "id": "uttarkashi-279-40278",
+          "code": 40278,
+          "name": "Devta Range"
+        },
+        {
+          "id": "uttarkashi-279-40279",
+          "code": 40279,
+          "name": "Sandra Range"
+        },
+        {
+          "id": "uttarkashi-279-40280",
+          "code": 40280,
+          "name": "Rupin Range"
+        },
+        {
+          "id": "uttarkashi-279-40281",
+          "code": 40281,
+          "name": "Sankari Range"
+        },
+        {
+          "id": "uttarkashi-279-40282",
+          "code": 40282,
+          "name": "Supin Range"
+        },
+        {
+          "id": "uttarkashi-279-40283",
+          "code": 40283,
+          "name": "Singtur Range"
+        }
+      ]
+    },
+    {
+      "id": "uttarkashi-280",
+      "code": 280,
+      "name": "Rajgarhi",
+      "villages": [
+        {
+          "id": "uttarkashi-280-40284",
+          "code": 40284,
+          "name": "Dhonsali"
+        },
+        {
+          "id": "uttarkashi-280-40285",
+          "code": 40285,
+          "name": "Jakhali"
+        },
+        {
+          "id": "uttarkashi-280-40286",
+          "code": 40286,
+          "name": "Ghund"
+        },
+        {
+          "id": "uttarkashi-280-40287",
+          "code": 40287,
+          "name": "Kotala"
+        },
+        {
+          "id": "uttarkashi-280-40288",
+          "code": 40288,
+          "name": "Biyali"
+        },
+        {
+          "id": "uttarkashi-280-40289",
+          "code": 40289,
+          "name": "Nald"
+        },
+        {
+          "id": "uttarkashi-280-40290",
+          "code": 40290,
+          "name": "Nathergaon"
+        },
+        {
+          "id": "uttarkashi-280-40291",
+          "code": 40291,
+          "name": "Kur"
+        },
+        {
+          "id": "uttarkashi-280-40292",
+          "code": 40292,
+          "name": "Gaul Banal"
+        },
+        {
+          "id": "uttarkashi-280-40293",
+          "code": 40293,
+          "name": "Sisala"
+        },
+        {
+          "id": "uttarkashi-280-40294",
+          "code": 40294,
+          "name": "Gair-Banal"
+        },
+        {
+          "id": "uttarkashi-280-40295",
+          "code": 40295,
+          "name": "Bakhreti"
+        },
+        {
+          "id": "uttarkashi-280-40296",
+          "code": 40296,
+          "name": "Arun"
+        },
+        {
+          "id": "uttarkashi-280-40297",
+          "code": 40297,
+          "name": "Ghandala"
+        },
+        {
+          "id": "uttarkashi-280-40298",
+          "code": 40298,
+          "name": "Thanki"
+        },
+        {
+          "id": "uttarkashi-280-40299",
+          "code": 40299,
+          "name": "Koti Banal"
+        },
+        {
+          "id": "uttarkashi-280-40300",
+          "code": 40300,
+          "name": "Bisatgaon"
+        },
+        {
+          "id": "uttarkashi-280-40301",
+          "code": 40301,
+          "name": "Chhatari"
+        },
+        {
+          "id": "uttarkashi-280-40302",
+          "code": 40302,
+          "name": "Bhani"
+        },
+        {
+          "id": "uttarkashi-280-40303",
+          "code": 40303,
+          "name": "Gulari"
+        },
+        {
+          "id": "uttarkashi-280-40304",
+          "code": 40304,
+          "name": "Jhumrada"
+        },
+        {
+          "id": "uttarkashi-280-40305",
+          "code": 40305,
+          "name": "Delda"
+        },
+        {
+          "id": "uttarkashi-280-40306",
+          "code": 40306,
+          "name": "Bigrari"
+        },
+        {
+          "id": "uttarkashi-280-40307",
+          "code": 40307,
+          "name": "Kanda"
+        },
+        {
+          "id": "uttarkashi-280-40308",
+          "code": 40308,
+          "name": "Karnali"
+        },
+        {
+          "id": "uttarkashi-280-40309",
+          "code": 40309,
+          "name": "Jestari"
+        },
+        {
+          "id": "uttarkashi-280-40310",
+          "code": 40310,
+          "name": "Pauri"
+        },
+        {
+          "id": "uttarkashi-280-40311",
+          "code": 40311,
+          "name": "Gadoli"
+        },
+        {
+          "id": "uttarkashi-280-40312",
+          "code": 40312,
+          "name": "Sinna"
+        },
+        {
+          "id": "uttarkashi-280-40313",
+          "code": 40313,
+          "name": "Kuni"
+        },
+        {
+          "id": "uttarkashi-280-40314",
+          "code": 40314,
+          "name": "Irak"
+        },
+        {
+          "id": "uttarkashi-280-40315",
+          "code": 40315,
+          "name": "Sirak"
+        },
+        {
+          "id": "uttarkashi-280-40316",
+          "code": 40316,
+          "name": "Dharali"
+        },
+        {
+          "id": "uttarkashi-280-40317",
+          "code": 40317,
+          "name": "Rajgarhi"
+        },
+        {
+          "id": "uttarkashi-280-40318",
+          "code": 40318,
+          "name": "Dakhyat Gaon"
+        },
+        {
+          "id": "uttarkashi-280-40319",
+          "code": 40319,
+          "name": "Kwal Gaon"
+        },
+        {
+          "id": "uttarkashi-280-40320",
+          "code": 40320,
+          "name": "Gonna"
+        },
+        {
+          "id": "uttarkashi-280-40321",
+          "code": 40321,
+          "name": "Chheti"
+        },
+        {
+          "id": "uttarkashi-280-40322",
+          "code": 40322,
+          "name": "Kuninda"
+        },
+        {
+          "id": "uttarkashi-280-40323",
+          "code": 40323,
+          "name": "Danda Gaon"
+        },
+        {
+          "id": "uttarkashi-280-40324",
+          "code": 40324,
+          "name": "Sunaldi"
+        },
+        {
+          "id": "uttarkashi-280-40325",
+          "code": 40325,
+          "name": "Sarnaul"
+        },
+        {
+          "id": "uttarkashi-280-40326",
+          "code": 40326,
+          "name": "Chaptari"
+        },
+        {
+          "id": "uttarkashi-280-40327",
+          "code": 40327,
+          "name": "Bachangaon"
+        },
+        {
+          "id": "uttarkashi-280-40328",
+          "code": 40328,
+          "name": "Basrali"
+        },
+        {
+          "id": "uttarkashi-280-40329",
+          "code": 40329,
+          "name": "Patangani"
+        },
+        {
+          "id": "uttarkashi-280-40330",
+          "code": 40330,
+          "name": "Koti Manpa"
+        },
+        {
+          "id": "uttarkashi-280-40331",
+          "code": 40331,
+          "name": "Gangtari"
+        },
+        {
+          "id": "uttarkashi-280-40332",
+          "code": 40332,
+          "name": "Fari"
+        },
+        {
+          "id": "uttarkashi-280-40333",
+          "code": 40333,
+          "name": "Khand"
+        },
+        {
+          "id": "uttarkashi-280-40334",
+          "code": 40334,
+          "name": "Masalgaon"
+        },
+        {
+          "id": "uttarkashi-280-40335",
+          "code": 40335,
+          "name": "Sukan"
+        },
+        {
+          "id": "uttarkashi-280-40336",
+          "code": 40336,
+          "name": "Kursil"
+        },
+        {
+          "id": "uttarkashi-280-40337",
+          "code": 40337,
+          "name": "Kisala"
+        },
+        {
+          "id": "uttarkashi-280-40338",
+          "code": 40338,
+          "name": "Phool Dhar"
+        },
+        {
+          "id": "uttarkashi-280-40339",
+          "code": 40339,
+          "name": "Syalab"
+        },
+        {
+          "id": "uttarkashi-280-40340",
+          "code": 40340,
+          "name": "Gaul Thakral"
+        },
+        {
+          "id": "uttarkashi-280-40341",
+          "code": 40341,
+          "name": "Nagargaon"
+        },
+        {
+          "id": "uttarkashi-280-40342",
+          "code": 40342,
+          "name": "Than"
+        },
+        {
+          "id": "uttarkashi-280-40343",
+          "code": 40343,
+          "name": "Massu"
+        },
+        {
+          "id": "uttarkashi-280-40344",
+          "code": 40344,
+          "name": "Palar"
+        },
+        {
+          "id": "uttarkashi-280-40345",
+          "code": 40345,
+          "name": "Kuthar"
+        },
+        {
+          "id": "uttarkashi-280-40346",
+          "code": 40346,
+          "name": "Rana"
+        },
+        {
+          "id": "uttarkashi-280-40347",
+          "code": 40347,
+          "name": "Durbil"
+        },
+        {
+          "id": "uttarkashi-280-40348",
+          "code": 40348,
+          "name": "Banas"
+        },
+        {
+          "id": "uttarkashi-280-40349",
+          "code": 40349,
+          "name": "Beef"
+        },
+        {
+          "id": "uttarkashi-280-40350",
+          "code": 40350,
+          "name": "Kharsali"
+        },
+        {
+          "id": "uttarkashi-280-40351",
+          "code": 40351,
+          "name": "Nisari"
+        },
+        {
+          "id": "uttarkashi-280-40352",
+          "code": 40352,
+          "name": "Bariya"
+        },
+        {
+          "id": "uttarkashi-280-40353",
+          "code": 40353,
+          "name": "Dangurgaon"
+        },
+        {
+          "id": "uttarkashi-280-40354",
+          "code": 40354,
+          "name": "Pindki Madesh"
+        },
+        {
+          "id": "uttarkashi-280-40355",
+          "code": 40355,
+          "name": "Bajari"
+        },
+        {
+          "id": "uttarkashi-280-40356",
+          "code": 40356,
+          "name": "Kunshala"
+        },
+        {
+          "id": "uttarkashi-280-40357",
+          "code": 40357,
+          "name": "Trikhali"
+        },
+        {
+          "id": "uttarkashi-280-40358",
+          "code": 40358,
+          "name": "Kupra"
+        },
+        {
+          "id": "uttarkashi-280-40359",
+          "code": 40359,
+          "name": "Pali"
+        },
+        {
+          "id": "uttarkashi-280-40360",
+          "code": 40360,
+          "name": "Pujargaon"
+        },
+        {
+          "id": "uttarkashi-280-40361",
+          "code": 40361,
+          "name": "Kuthnaur"
+        },
+        {
+          "id": "uttarkashi-280-40362",
+          "code": 40362,
+          "name": "Halna"
+        },
+        {
+          "id": "uttarkashi-280-40363",
+          "code": 40363,
+          "name": "Khanera"
+        },
+        {
+          "id": "uttarkashi-280-40364",
+          "code": 40364,
+          "name": "Syalna"
+        },
+        {
+          "id": "uttarkashi-280-40365",
+          "code": 40365,
+          "name": "Bhansari"
+        },
+        {
+          "id": "uttarkashi-280-40366",
+          "code": 40366,
+          "name": "Nandgaon"
+        },
+        {
+          "id": "uttarkashi-280-40367",
+          "code": 40367,
+          "name": "Chhatanga"
+        },
+        {
+          "id": "uttarkashi-280-40368",
+          "code": 40368,
+          "name": "Dandalgaon"
+        },
+        {
+          "id": "uttarkashi-280-40369",
+          "code": 40369,
+          "name": "Barkot"
+        },
+        {
+          "id": "uttarkashi-280-40370",
+          "code": 40370,
+          "name": "Sara"
+        },
+        {
+          "id": "uttarkashi-280-40371",
+          "code": 40371,
+          "name": "Chakragaon"
+        },
+        {
+          "id": "uttarkashi-280-40372",
+          "code": 40372,
+          "name": "Uprari"
+        },
+        {
+          "id": "uttarkashi-280-40373",
+          "code": 40373,
+          "name": "Molda"
+        },
+        {
+          "id": "uttarkashi-280-40374",
+          "code": 40374,
+          "name": "Paunthi"
+        },
+        {
+          "id": "uttarkashi-280-40375",
+          "code": 40375,
+          "name": "Kanseru"
+        },
+        {
+          "id": "uttarkashi-280-40376",
+          "code": 40376,
+          "name": "Kisna"
+        },
+        {
+          "id": "uttarkashi-280-40377",
+          "code": 40377,
+          "name": "Tunalka"
+        },
+        {
+          "id": "uttarkashi-280-40378",
+          "code": 40378,
+          "name": "Bhatiya"
+        },
+        {
+          "id": "uttarkashi-280-40379",
+          "code": 40379,
+          "name": "Khansi"
+        },
+        {
+          "id": "uttarkashi-280-40380",
+          "code": 40380,
+          "name": "Balari"
+        },
+        {
+          "id": "uttarkashi-280-40381",
+          "code": 40381,
+          "name": "Paletha"
+        },
+        {
+          "id": "uttarkashi-280-40382",
+          "code": 40382,
+          "name": "Bagasu"
+        },
+        {
+          "id": "uttarkashi-280-40383",
+          "code": 40383,
+          "name": "Kotiyal Gaon"
+        },
+        {
+          "id": "uttarkashi-280-40384",
+          "code": 40384,
+          "name": "Kansola"
+        },
+        {
+          "id": "uttarkashi-280-40385",
+          "code": 40385,
+          "name": "Manjyali"
+        },
+        {
+          "id": "uttarkashi-280-40386",
+          "code": 40386,
+          "name": "Sunara"
+        },
+        {
+          "id": "uttarkashi-280-40387",
+          "code": 40387,
+          "name": "Mungra"
+        },
+        {
+          "id": "uttarkashi-280-40388",
+          "code": 40388,
+          "name": "Muradi"
+        },
+        {
+          "id": "uttarkashi-280-40389",
+          "code": 40389,
+          "name": "Sapeta"
+        },
+        {
+          "id": "uttarkashi-280-40390",
+          "code": 40390,
+          "name": "Naugaon"
+        },
+        {
+          "id": "uttarkashi-280-40391",
+          "code": 40391,
+          "name": "Matiyali"
+        },
+        {
+          "id": "uttarkashi-280-40392",
+          "code": 40392,
+          "name": "Sauli"
+        },
+        {
+          "id": "uttarkashi-280-40393",
+          "code": 40393,
+          "name": "Dhari Walli"
+        },
+        {
+          "id": "uttarkashi-280-40394",
+          "code": 40394,
+          "name": "Kwari"
+        },
+        {
+          "id": "uttarkashi-280-40395",
+          "code": 40395,
+          "name": "Bingsi"
+        },
+        {
+          "id": "uttarkashi-280-40396",
+          "code": 40396,
+          "name": "Naini"
+        },
+        {
+          "id": "uttarkashi-280-40397",
+          "code": 40397,
+          "name": "Pisaun"
+        },
+        {
+          "id": "uttarkashi-280-40398",
+          "code": 40398,
+          "name": "Kimi"
+        },
+        {
+          "id": "uttarkashi-280-40399",
+          "code": 40399,
+          "name": "Rastari"
+        },
+        {
+          "id": "uttarkashi-280-40400",
+          "code": 40400,
+          "name": "Billagaon"
+        },
+        {
+          "id": "uttarkashi-280-40401",
+          "code": 40401,
+          "name": "Kandaun"
+        },
+        {
+          "id": "uttarkashi-280-40402",
+          "code": 40402,
+          "name": "Jarida"
+        },
+        {
+          "id": "uttarkashi-280-40403",
+          "code": 40403,
+          "name": "Biruntha"
+        },
+        {
+          "id": "uttarkashi-280-40404",
+          "code": 40404,
+          "name": "Tinya"
+        },
+        {
+          "id": "uttarkashi-280-40405",
+          "code": 40405,
+          "name": "Kalogi"
+        },
+        {
+          "id": "uttarkashi-280-40406",
+          "code": 40406,
+          "name": "Himrola"
+        },
+        {
+          "id": "uttarkashi-280-40407",
+          "code": 40407,
+          "name": "Kafanaul"
+        },
+        {
+          "id": "uttarkashi-280-40408",
+          "code": 40408,
+          "name": "Tholiyunka"
+        },
+        {
+          "id": "uttarkashi-280-40409",
+          "code": 40409,
+          "name": "Dhari Palli"
+        },
+        {
+          "id": "uttarkashi-280-40410",
+          "code": 40410,
+          "name": "Naryunka"
+        },
+        {
+          "id": "uttarkashi-280-40411",
+          "code": 40411,
+          "name": "Manar Gaon"
+        },
+        {
+          "id": "uttarkashi-280-40412",
+          "code": 40412,
+          "name": "Chhuri"
+        },
+        {
+          "id": "uttarkashi-280-40413",
+          "code": 40413,
+          "name": "Tera"
+        },
+        {
+          "id": "uttarkashi-280-40414",
+          "code": 40414,
+          "name": "Kunwa"
+        },
+        {
+          "id": "uttarkashi-280-40415",
+          "code": 40415,
+          "name": "Bajlari"
+        },
+        {
+          "id": "uttarkashi-280-40416",
+          "code": 40416,
+          "name": "Pamari"
+        },
+        {
+          "id": "uttarkashi-280-40417",
+          "code": 40417,
+          "name": "Khabla"
+        },
+        {
+          "id": "uttarkashi-280-40418",
+          "code": 40418,
+          "name": "Semalsari"
+        },
+        {
+          "id": "uttarkashi-280-40419",
+          "code": 40419,
+          "name": "Paluka"
+        },
+        {
+          "id": "uttarkashi-280-40420",
+          "code": 40420,
+          "name": "Darsaun"
+        },
+        {
+          "id": "uttarkashi-280-40421",
+          "code": 40421,
+          "name": "Gair"
+        },
+        {
+          "id": "uttarkashi-280-40422",
+          "code": 40422,
+          "name": "Kufan"
+        },
+        {
+          "id": "uttarkashi-280-40423",
+          "code": 40423,
+          "name": "Barnigad"
+        },
+        {
+          "id": "uttarkashi-280-40424",
+          "code": 40424,
+          "name": "Nisari"
+        },
+        {
+          "id": "uttarkashi-280-40425",
+          "code": 40425,
+          "name": "Barnigad Khatal"
+        },
+        {
+          "id": "uttarkashi-280-40426",
+          "code": 40426,
+          "name": "Garh"
+        },
+        {
+          "id": "uttarkashi-280-40427",
+          "code": 40427,
+          "name": "Bijori"
+        },
+        {
+          "id": "uttarkashi-280-40428",
+          "code": 40428,
+          "name": "Phiphiyara"
+        },
+        {
+          "id": "uttarkashi-280-40429",
+          "code": 40429,
+          "name": "Singuni"
+        },
+        {
+          "id": "uttarkashi-280-40430",
+          "code": 40430,
+          "name": "Bhaunti"
+        },
+        {
+          "id": "uttarkashi-280-40431",
+          "code": 40431,
+          "name": "Dewal"
+        },
+        {
+          "id": "uttarkashi-280-40432",
+          "code": 40432,
+          "name": "Nyuri"
+        },
+        {
+          "id": "uttarkashi-280-40433",
+          "code": 40433,
+          "name": "Kaslana"
+        },
+        {
+          "id": "uttarkashi-280-40434",
+          "code": 40434,
+          "name": "Sarnachak"
+        },
+        {
+          "id": "uttarkashi-280-40435",
+          "code": 40435,
+          "name": "Chopara"
+        },
+        {
+          "id": "uttarkashi-280-40436",
+          "code": 40436,
+          "name": "Phuwan Gaon"
+        },
+        {
+          "id": "uttarkashi-280-40437",
+          "code": 40437,
+          "name": "Gatu"
+        },
+        {
+          "id": "uttarkashi-280-40438",
+          "code": 40438,
+          "name": "Godin"
+        },
+        {
+          "id": "uttarkashi-280-40439",
+          "code": 40439,
+          "name": "Darogi"
+        },
+        {
+          "id": "uttarkashi-280-40440",
+          "code": 40440,
+          "name": "Bursi"
+        },
+        {
+          "id": "uttarkashi-280-40441",
+          "code": 40441,
+          "name": "Kewalgaon"
+        },
+        {
+          "id": "uttarkashi-280-40442",
+          "code": 40442,
+          "name": "Jandgon"
+        },
+        {
+          "id": "uttarkashi-280-40443",
+          "code": 40443,
+          "name": "Khirmu"
+        },
+        {
+          "id": "uttarkashi-280-40444",
+          "code": 40444,
+          "name": "Kalojgaon"
+        },
+        {
+          "id": "uttarkashi-280-40445",
+          "code": 40445,
+          "name": "Naugaun(Godar)"
+        },
+        {
+          "id": "uttarkashi-280-40446",
+          "code": 40446,
+          "name": "Matari"
+        },
+        {
+          "id": "uttarkashi-280-40447",
+          "code": 40447,
+          "name": "Odgaon"
+        },
+        {
+          "id": "uttarkashi-280-40448",
+          "code": 40448,
+          "name": "Lodan"
+        },
+        {
+          "id": "uttarkashi-280-40449",
+          "code": 40449,
+          "name": "Jhimangaon"
+        },
+        {
+          "id": "uttarkashi-280-40450",
+          "code": 40450,
+          "name": "Jugargaon"
+        },
+        {
+          "id": "uttarkashi-280-40451",
+          "code": 40451,
+          "name": "Mulagaon"
+        },
+        {
+          "id": "uttarkashi-280-40452",
+          "code": 40452,
+          "name": "Rikhaun"
+        },
+        {
+          "id": "uttarkashi-280-40453",
+          "code": 40453,
+          "name": "Kandari"
+        },
+        {
+          "id": "uttarkashi-280-40454",
+          "code": 40454,
+          "name": "Khamundi Talli"
+        },
+        {
+          "id": "uttarkashi-280-40455",
+          "code": 40455,
+          "name": "Khamundi Malli"
+        },
+        {
+          "id": "uttarkashi-280-40456",
+          "code": 40456,
+          "name": "Badogi"
+        },
+        {
+          "id": "uttarkashi-280-40457",
+          "code": 40457,
+          "name": "Kakhon"
+        },
+        {
+          "id": "uttarkashi-280-40458",
+          "code": 40458,
+          "name": "Dhuink"
+        },
+        {
+          "id": "uttarkashi-280-40459",
+          "code": 40459,
+          "name": "Matala"
+        },
+        {
+          "id": "uttarkashi-280-40460",
+          "code": 40460,
+          "name": "Kandi"
+        },
+        {
+          "id": "uttarkashi-280-40461",
+          "code": 40461,
+          "name": "Khanati"
+        },
+        {
+          "id": "uttarkashi-280-40462",
+          "code": 40462,
+          "name": "Bhunar Gaon"
+        },
+        {
+          "id": "uttarkashi-280-40463",
+          "code": 40463,
+          "name": "Setwari"
+        },
+        {
+          "id": "uttarkashi-280-40464",
+          "code": 40464,
+          "name": "Diyari"
+        },
+        {
+          "id": "uttarkashi-280-40465",
+          "code": 40465,
+          "name": "Syalana Beet"
+        },
+        {
+          "id": "uttarkashi-280-40466",
+          "code": 40466,
+          "name": "Rewai Range"
+        },
+        {
+          "id": "uttarkashi-280-40467",
+          "code": 40467,
+          "name": "Yamnotri Range"
+        },
+        {
+          "id": "uttarkashi-280-40468",
+          "code": 40468,
+          "name": "Rana Beet"
+        },
+        {
+          "id": "uttarkashi-280-40469",
+          "code": 40469,
+          "name": "Molda Beet"
+        },
+        {
+          "id": "uttarkashi-280-40470",
+          "code": 40470,
+          "name": "Mugarsanti Range"
+        },
+        {
+          "id": "uttarkashi-280-40471",
+          "code": 40471,
+          "name": "Mugarsanti Range (P-2)"
+        },
+        {
+          "id": "uttarkashi-280-40472",
+          "code": 40472,
+          "name": "Mugarsanti Range (P-3)"
+        }
+      ]
+    },
+    {
+      "id": "uttarkashi-281",
+      "code": 281,
+      "name": "Dunda",
+      "villages": [
+        {
+          "id": "uttarkashi-281-40473",
+          "code": 40473,
+          "name": "Rangarisera"
+        },
+        {
+          "id": "uttarkashi-281-40474",
+          "code": 40474,
+          "name": "Singot"
+        },
+        {
+          "id": "uttarkashi-281-40475",
+          "code": 40475,
+          "name": "Bhadusera"
+        },
+        {
+          "id": "uttarkashi-281-40476",
+          "code": 40476,
+          "name": "Pab"
+        },
+        {
+          "id": "uttarkashi-281-40477",
+          "code": 40477,
+          "name": "Baun"
+        },
+        {
+          "id": "uttarkashi-281-40478",
+          "code": 40478,
+          "name": "Chinakholi"
+        },
+        {
+          "id": "uttarkashi-281-40479",
+          "code": 40479,
+          "name": "Raturisera"
+        },
+        {
+          "id": "uttarkashi-281-40480",
+          "code": 40480,
+          "name": "Garh"
+        },
+        {
+          "id": "uttarkashi-281-40481",
+          "code": 40481,
+          "name": "Sangosera"
+        },
+        {
+          "id": "uttarkashi-281-40482",
+          "code": 40482,
+          "name": "Saundhgaon"
+        },
+        {
+          "id": "uttarkashi-281-40483",
+          "code": 40483,
+          "name": "Manglisera"
+        },
+        {
+          "id": "uttarkashi-281-40484",
+          "code": 40484,
+          "name": "Kunsi"
+        },
+        {
+          "id": "uttarkashi-281-40485",
+          "code": 40485,
+          "name": "Budhargaon"
+        },
+        {
+          "id": "uttarkashi-281-40486",
+          "code": 40486,
+          "name": "Barsali"
+        },
+        {
+          "id": "uttarkashi-281-40487",
+          "code": 40487,
+          "name": "Singoti"
+        },
+        {
+          "id": "uttarkashi-281-40488",
+          "code": 40488,
+          "name": "Veerpur"
+        },
+        {
+          "id": "uttarkashi-281-40489",
+          "code": 40489,
+          "name": "Dunda"
+        },
+        {
+          "id": "uttarkashi-281-40490",
+          "code": 40490,
+          "name": "Uprikot"
+        },
+        {
+          "id": "uttarkashi-281-40491",
+          "code": 40491,
+          "name": "Bharargaon"
+        },
+        {
+          "id": "uttarkashi-281-40492",
+          "code": 40492,
+          "name": "Khurkot"
+        },
+        {
+          "id": "uttarkashi-281-40493",
+          "code": 40493,
+          "name": "Kanwa"
+        },
+        {
+          "id": "uttarkashi-281-40494",
+          "code": 40494,
+          "name": "Panjyala"
+        },
+        {
+          "id": "uttarkashi-281-40495",
+          "code": 40495,
+          "name": "Jugaldi"
+        },
+        {
+          "id": "uttarkashi-281-40496",
+          "code": 40496,
+          "name": "Genwala"
+        },
+        {
+          "id": "uttarkashi-281-40497",
+          "code": 40497,
+          "name": "Matali"
+        },
+        {
+          "id": "uttarkashi-281-40498",
+          "code": 40498,
+          "name": "Kharwan"
+        },
+        {
+          "id": "uttarkashi-281-40499",
+          "code": 40499,
+          "name": "Barethi Patti Barsali"
+        },
+        {
+          "id": "uttarkashi-281-40500",
+          "code": 40500,
+          "name": "Ranari"
+        },
+        {
+          "id": "uttarkashi-281-40501",
+          "code": 40501,
+          "name": "Majaf"
+        },
+        {
+          "id": "uttarkashi-281-40502",
+          "code": 40502,
+          "name": "Dandagaon"
+        },
+        {
+          "id": "uttarkashi-281-40503",
+          "code": 40503,
+          "name": "Astal"
+        },
+        {
+          "id": "uttarkashi-281-40504",
+          "code": 40504,
+          "name": "Hitaru"
+        },
+        {
+          "id": "uttarkashi-281-40505",
+          "code": 40505,
+          "name": "Darmali"
+        },
+        {
+          "id": "uttarkashi-281-40506",
+          "code": 40506,
+          "name": "Pujar Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40507",
+          "code": 40507,
+          "name": "Gawara"
+        },
+        {
+          "id": "uttarkashi-281-40508",
+          "code": 40508,
+          "name": "Dhungi"
+        },
+        {
+          "id": "uttarkashi-281-40509",
+          "code": 40509,
+          "name": "Singuni"
+        },
+        {
+          "id": "uttarkashi-281-40510",
+          "code": 40510,
+          "name": "Gandabandaurf Baijkot"
+        },
+        {
+          "id": "uttarkashi-281-40511",
+          "code": 40511,
+          "name": "Paini Bhanwan"
+        },
+        {
+          "id": "uttarkashi-281-40512",
+          "code": 40512,
+          "name": "Diwali"
+        },
+        {
+          "id": "uttarkashi-281-40513",
+          "code": 40513,
+          "name": "Kirurgaon"
+        },
+        {
+          "id": "uttarkashi-281-40514",
+          "code": 40514,
+          "name": "Koti Bhat Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40515",
+          "code": 40515,
+          "name": "Chinargaon"
+        },
+        {
+          "id": "uttarkashi-281-40516",
+          "code": 40516,
+          "name": "Dugal Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40517",
+          "code": 40517,
+          "name": "Chakon"
+        },
+        {
+          "id": "uttarkashi-281-40518",
+          "code": 40518,
+          "name": "Fold"
+        },
+        {
+          "id": "uttarkashi-281-40519",
+          "code": 40519,
+          "name": "Dikthol"
+        },
+        {
+          "id": "uttarkashi-281-40520",
+          "code": 40520,
+          "name": "Panchan Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40521",
+          "code": 40521,
+          "name": "Bhatwari"
+        },
+        {
+          "id": "uttarkashi-281-40522",
+          "code": 40522,
+          "name": "Bagsari"
+        },
+        {
+          "id": "uttarkashi-281-40523",
+          "code": 40523,
+          "name": "Kuleth"
+        },
+        {
+          "id": "uttarkashi-281-40524",
+          "code": 40524,
+          "name": "Musargaon"
+        },
+        {
+          "id": "uttarkashi-281-40525",
+          "code": 40525,
+          "name": "Dharkot"
+        },
+        {
+          "id": "uttarkashi-281-40526",
+          "code": 40526,
+          "name": "Dhikbijpur"
+        },
+        {
+          "id": "uttarkashi-281-40527",
+          "code": 40527,
+          "name": "Pipli-Rajak"
+        },
+        {
+          "id": "uttarkashi-281-40528",
+          "code": 40528,
+          "name": "Ieer"
+        },
+        {
+          "id": "uttarkashi-281-40529",
+          "code": 40529,
+          "name": "Thati"
+        },
+        {
+          "id": "uttarkashi-281-40530",
+          "code": 40530,
+          "name": "Bagyal Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40531",
+          "code": 40531,
+          "name": "Kali Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40532",
+          "code": 40532,
+          "name": "Paturi"
+        },
+        {
+          "id": "uttarkashi-281-40533",
+          "code": 40533,
+          "name": "Dungal Dhar"
+        },
+        {
+          "id": "uttarkashi-281-40534",
+          "code": 40534,
+          "name": "Manj Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40535",
+          "code": 40535,
+          "name": "Wan"
+        },
+        {
+          "id": "uttarkashi-281-40536",
+          "code": 40536,
+          "name": "Gewhoti"
+        },
+        {
+          "id": "uttarkashi-281-40537",
+          "code": 40537,
+          "name": "Nagal"
+        },
+        {
+          "id": "uttarkashi-281-40538",
+          "code": 40538,
+          "name": "Saundhgaon"
+        },
+        {
+          "id": "uttarkashi-281-40539",
+          "code": 40539,
+          "name": "Chhamroli"
+        },
+        {
+          "id": "uttarkashi-281-40540",
+          "code": 40540,
+          "name": "Nawagaon"
+        },
+        {
+          "id": "uttarkashi-281-40541",
+          "code": 40541,
+          "name": "Sartali"
+        },
+        {
+          "id": "uttarkashi-281-40542",
+          "code": 40542,
+          "name": "Dang"
+        },
+        {
+          "id": "uttarkashi-281-40543",
+          "code": 40543,
+          "name": "Khurmola"
+        },
+        {
+          "id": "uttarkashi-281-40544",
+          "code": 40544,
+          "name": "Jaspur"
+        },
+        {
+          "id": "uttarkashi-281-40545",
+          "code": 40545,
+          "name": "Olya"
+        },
+        {
+          "id": "uttarkashi-281-40546",
+          "code": 40546,
+          "name": "Genwala"
+        },
+        {
+          "id": "uttarkashi-281-40547",
+          "code": 40547,
+          "name": "Mandiyasari"
+        },
+        {
+          "id": "uttarkashi-281-40548",
+          "code": 40548,
+          "name": "Kumrara"
+        },
+        {
+          "id": "uttarkashi-281-40549",
+          "code": 40549,
+          "name": "Bareth"
+        },
+        {
+          "id": "uttarkashi-281-40550",
+          "code": 40550,
+          "name": "Jemar"
+        },
+        {
+          "id": "uttarkashi-281-40551",
+          "code": 40551,
+          "name": "Mashon"
+        },
+        {
+          "id": "uttarkashi-281-40552",
+          "code": 40552,
+          "name": "Bhadali"
+        },
+        {
+          "id": "uttarkashi-281-40553",
+          "code": 40553,
+          "name": "Panoth"
+        },
+        {
+          "id": "uttarkashi-281-40554",
+          "code": 40554,
+          "name": "Mainol"
+        },
+        {
+          "id": "uttarkashi-281-40555",
+          "code": 40555,
+          "name": "Painthar"
+        },
+        {
+          "id": "uttarkashi-281-40556",
+          "code": 40556,
+          "name": "Jineth"
+        },
+        {
+          "id": "uttarkashi-281-40557",
+          "code": 40557,
+          "name": "Jugiara"
+        },
+        {
+          "id": "uttarkashi-281-40558",
+          "code": 40558,
+          "name": "Reshgi"
+        },
+        {
+          "id": "uttarkashi-281-40559",
+          "code": 40559,
+          "name": "Tipra"
+        },
+        {
+          "id": "uttarkashi-281-40560",
+          "code": 40560,
+          "name": "Jurga"
+        },
+        {
+          "id": "uttarkashi-281-40561",
+          "code": 40561,
+          "name": "Harathi"
+        },
+        {
+          "id": "uttarkashi-281-40562",
+          "code": 40562,
+          "name": "Bandu"
+        },
+        {
+          "id": "uttarkashi-281-40563",
+          "code": 40563,
+          "name": "Soman"
+        },
+        {
+          "id": "uttarkashi-281-40564",
+          "code": 40564,
+          "name": "Loldu"
+        },
+        {
+          "id": "uttarkashi-281-40565",
+          "code": 40565,
+          "name": "Pujyar Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40566",
+          "code": 40566,
+          "name": "Malna"
+        },
+        {
+          "id": "uttarkashi-281-40567",
+          "code": 40567,
+          "name": "Kalyani"
+        },
+        {
+          "id": "uttarkashi-281-40568",
+          "code": 40568,
+          "name": "Jakhari"
+        },
+        {
+          "id": "uttarkashi-281-40569",
+          "code": 40569,
+          "name": "Patara"
+        },
+        {
+          "id": "uttarkashi-281-40570",
+          "code": 40570,
+          "name": "Dikholi"
+        },
+        {
+          "id": "uttarkashi-281-40571",
+          "code": 40571,
+          "name": "Saur"
+        },
+        {
+          "id": "uttarkashi-281-40572",
+          "code": 40572,
+          "name": "Chaundiyat Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40573",
+          "code": 40573,
+          "name": "Kumarkot"
+        },
+        {
+          "id": "uttarkashi-281-40574",
+          "code": 40574,
+          "name": "Thandi"
+        },
+        {
+          "id": "uttarkashi-281-40575",
+          "code": 40575,
+          "name": "Jalang"
+        },
+        {
+          "id": "uttarkashi-281-40576",
+          "code": 40576,
+          "name": "Kamad"
+        },
+        {
+          "id": "uttarkashi-281-40577",
+          "code": 40577,
+          "name": "Bagi"
+        },
+        {
+          "id": "uttarkashi-281-40578",
+          "code": 40578,
+          "name": "Bharkot"
+        },
+        {
+          "id": "uttarkashi-281-40579",
+          "code": 40579,
+          "name": "Lodara"
+        },
+        {
+          "id": "uttarkashi-281-40580",
+          "code": 40580,
+          "name": "Bhetiyara"
+        },
+        {
+          "id": "uttarkashi-281-40581",
+          "code": 40581,
+          "name": "Siri Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40582",
+          "code": 40582,
+          "name": "Udri"
+        },
+        {
+          "id": "uttarkashi-281-40583",
+          "code": 40583,
+          "name": "Matti"
+        },
+        {
+          "id": "uttarkashi-281-40584",
+          "code": 40584,
+          "name": "Naipar"
+        },
+        {
+          "id": "uttarkashi-281-40585",
+          "code": 40585,
+          "name": "Dhareti"
+        },
+        {
+          "id": "uttarkashi-281-40586",
+          "code": 40586,
+          "name": "Gorsara"
+        },
+        {
+          "id": "uttarkashi-281-40587",
+          "code": 40587,
+          "name": "Bhaintgaon"
+        },
+        {
+          "id": "uttarkashi-281-40588",
+          "code": 40588,
+          "name": "New Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40589",
+          "code": 40589,
+          "name": "Bareth"
+        },
+        {
+          "id": "uttarkashi-281-40590",
+          "code": 40590,
+          "name": "Garh Thati"
+        },
+        {
+          "id": "uttarkashi-281-40591",
+          "code": 40591,
+          "name": "Pokhariyal Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40592",
+          "code": 40592,
+          "name": "Huldiyana"
+        },
+        {
+          "id": "uttarkashi-281-40593",
+          "code": 40593,
+          "name": "Kauda Phedi"
+        },
+        {
+          "id": "uttarkashi-281-40594",
+          "code": 40594,
+          "name": "Khattu khal"
+        },
+        {
+          "id": "uttarkashi-281-40595",
+          "code": 40595,
+          "name": "Chilmud Gaon"
+        },
+        {
+          "id": "uttarkashi-281-40596",
+          "code": 40596,
+          "name": "Bagyal khet"
+        },
+        {
+          "id": "uttarkashi-281-40597",
+          "code": 40597,
+          "name": "Dunda Range"
+        },
+        {
+          "id": "uttarkashi-281-40598",
+          "code": 40598,
+          "name": "Dunda Range (P-2)"
+        },
+        {
+          "id": "uttarkashi-281-40599",
+          "code": 40599,
+          "name": "Dunda Range (P-3)"
+        },
+        {
+          "id": "uttarkashi-281-40600",
+          "code": 40600,
+          "name": "Dharasu Range"
+        },
+        {
+          "id": "uttarkashi-281-40601",
+          "code": 40601,
+          "name": "Mukhem Range (P-2)"
+        }
+      ]
+    },
+    {
+      "id": "uttarkashi-282",
+      "code": 282,
+      "name": "Chiniyalisaur",
+      "villages": [
+        {
+          "id": "uttarkashi-282-40602",
+          "code": 40602,
+          "name": "Ban Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40603",
+          "code": 40603,
+          "name": "Badli"
+        },
+        {
+          "id": "uttarkashi-282-40604",
+          "code": 40604,
+          "name": "Kawadha"
+        },
+        {
+          "id": "uttarkashi-282-40605",
+          "code": 40605,
+          "name": "Chhijula"
+        },
+        {
+          "id": "uttarkashi-282-40606",
+          "code": 40606,
+          "name": "Pujyar Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40607",
+          "code": 40607,
+          "name": "Murogi"
+        },
+        {
+          "id": "uttarkashi-282-40608",
+          "code": 40608,
+          "name": "Kaprara"
+        },
+        {
+          "id": "uttarkashi-282-40609",
+          "code": 40609,
+          "name": "Kamda"
+        },
+        {
+          "id": "uttarkashi-282-40610",
+          "code": 40610,
+          "name": "Banot Palla"
+        },
+        {
+          "id": "uttarkashi-282-40611",
+          "code": 40611,
+          "name": "Tandola"
+        },
+        {
+          "id": "uttarkashi-282-40612",
+          "code": 40612,
+          "name": "Banota Walla"
+        },
+        {
+          "id": "uttarkashi-282-40613",
+          "code": 40613,
+          "name": "Mathali"
+        },
+        {
+          "id": "uttarkashi-282-40614",
+          "code": 40614,
+          "name": "Kyari"
+        },
+        {
+          "id": "uttarkashi-282-40615",
+          "code": 40615,
+          "name": "Jibya"
+        },
+        {
+          "id": "uttarkashi-282-40616",
+          "code": 40616,
+          "name": "Rikhar Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40617",
+          "code": 40617,
+          "name": "Danda Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40618",
+          "code": 40618,
+          "name": "Mangar Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40619",
+          "code": 40619,
+          "name": "Sigar Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40620",
+          "code": 40620,
+          "name": "Ramoli"
+        },
+        {
+          "id": "uttarkashi-282-40621",
+          "code": 40621,
+          "name": "Bagi"
+        },
+        {
+          "id": "uttarkashi-282-40622",
+          "code": 40622,
+          "name": "Badalda"
+        },
+        {
+          "id": "uttarkashi-282-40623",
+          "code": 40623,
+          "name": "Dargad"
+        },
+        {
+          "id": "uttarkashi-282-40624",
+          "code": 40624,
+          "name": "Suri"
+        },
+        {
+          "id": "uttarkashi-282-40625",
+          "code": 40625,
+          "name": "Tarakot"
+        },
+        {
+          "id": "uttarkashi-282-40626",
+          "code": 40626,
+          "name": "Khadara"
+        },
+        {
+          "id": "uttarkashi-282-40627",
+          "code": 40627,
+          "name": "Udkhola"
+        },
+        {
+          "id": "uttarkashi-282-40628",
+          "code": 40628,
+          "name": "Tipri"
+        },
+        {
+          "id": "uttarkashi-282-40629",
+          "code": 40629,
+          "name": "Dharkot"
+        },
+        {
+          "id": "uttarkashi-282-40630",
+          "code": 40630,
+          "name": "Banari"
+        },
+        {
+          "id": "uttarkashi-282-40631",
+          "code": 40631,
+          "name": "Sira"
+        },
+        {
+          "id": "uttarkashi-282-40632",
+          "code": 40632,
+          "name": "Gadoli"
+        },
+        {
+          "id": "uttarkashi-282-40633",
+          "code": 40633,
+          "name": "Garat"
+        },
+        {
+          "id": "uttarkashi-282-40634",
+          "code": 40634,
+          "name": "Jokhoni"
+        },
+        {
+          "id": "uttarkashi-282-40635",
+          "code": 40635,
+          "name": "Jestwari"
+        },
+        {
+          "id": "uttarkashi-282-40636",
+          "code": 40636,
+          "name": "Kandi"
+        },
+        {
+          "id": "uttarkashi-282-40637",
+          "code": 40637,
+          "name": "Kainthogi"
+        },
+        {
+          "id": "uttarkashi-282-40638",
+          "code": 40638,
+          "name": "Chiloth"
+        },
+        {
+          "id": "uttarkashi-282-40639",
+          "code": 40639,
+          "name": "Bamnati"
+        },
+        {
+          "id": "uttarkashi-282-40640",
+          "code": 40640,
+          "name": "Shrikot"
+        },
+        {
+          "id": "uttarkashi-282-40641",
+          "code": 40641,
+          "name": "Kuthaldi"
+        },
+        {
+          "id": "uttarkashi-282-40642",
+          "code": 40642,
+          "name": "Dharasu"
+        },
+        {
+          "id": "uttarkashi-282-40643",
+          "code": 40643,
+          "name": "Morgi"
+        },
+        {
+          "id": "uttarkashi-282-40644",
+          "code": 40644,
+          "name": "Baret"
+        },
+        {
+          "id": "uttarkashi-282-40645",
+          "code": 40645,
+          "name": "Indra Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40646",
+          "code": 40646,
+          "name": "Tipri"
+        },
+        {
+          "id": "uttarkashi-282-40647",
+          "code": 40647,
+          "name": "Matholi"
+        },
+        {
+          "id": "uttarkashi-282-40648",
+          "code": 40648,
+          "name": "Maugh"
+        },
+        {
+          "id": "uttarkashi-282-40649",
+          "code": 40649,
+          "name": "Badethi"
+        },
+        {
+          "id": "uttarkashi-282-40650",
+          "code": 40650,
+          "name": "Kandla"
+        },
+        {
+          "id": "uttarkashi-282-40651",
+          "code": 40651,
+          "name": "Hidhara"
+        },
+        {
+          "id": "uttarkashi-282-40652",
+          "code": 40652,
+          "name": "Bhunyara"
+        },
+        {
+          "id": "uttarkashi-282-40653",
+          "code": 40653,
+          "name": "Dhanpur"
+        },
+        {
+          "id": "uttarkashi-282-40654",
+          "code": 40654,
+          "name": "Nagri Chhoti"
+        },
+        {
+          "id": "uttarkashi-282-40655",
+          "code": 40655,
+          "name": "Nagri Bari"
+        },
+        {
+          "id": "uttarkashi-282-40656",
+          "code": 40656,
+          "name": "Bagi"
+        },
+        {
+          "id": "uttarkashi-282-40657",
+          "code": 40657,
+          "name": "Kansi"
+        },
+        {
+          "id": "uttarkashi-282-40658",
+          "code": 40658,
+          "name": "Kot"
+        },
+        {
+          "id": "uttarkashi-282-40659",
+          "code": 40659,
+          "name": "Chinyali"
+        },
+        {
+          "id": "uttarkashi-282-40660",
+          "code": 40660,
+          "name": "Mar Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40661",
+          "code": 40661,
+          "name": "Chamiyari"
+        },
+        {
+          "id": "uttarkashi-282-40662",
+          "code": 40662,
+          "name": "Ular"
+        },
+        {
+          "id": "uttarkashi-282-40663",
+          "code": 40663,
+          "name": "Pipal Khanda"
+        },
+        {
+          "id": "uttarkashi-282-40664",
+          "code": 40664,
+          "name": "Gamari"
+        },
+        {
+          "id": "uttarkashi-282-40665",
+          "code": 40665,
+          "name": "Chand Pur"
+        },
+        {
+          "id": "uttarkashi-282-40666",
+          "code": 40666,
+          "name": "Rautal"
+        },
+        {
+          "id": "uttarkashi-282-40667",
+          "code": 40667,
+          "name": "Jaspur"
+        },
+        {
+          "id": "uttarkashi-282-40668",
+          "code": 40668,
+          "name": "Kotgari"
+        },
+        {
+          "id": "uttarkashi-282-40669",
+          "code": 40669,
+          "name": "Adni"
+        },
+        {
+          "id": "uttarkashi-282-40670",
+          "code": 40670,
+          "name": "Kot"
+        },
+        {
+          "id": "uttarkashi-282-40671",
+          "code": 40671,
+          "name": "Khand"
+        },
+        {
+          "id": "uttarkashi-282-40672",
+          "code": 40672,
+          "name": "Pujyar Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40673",
+          "code": 40673,
+          "name": "Neri"
+        },
+        {
+          "id": "uttarkashi-282-40674",
+          "code": 40674,
+          "name": "Tulyara"
+        },
+        {
+          "id": "uttarkashi-282-40675",
+          "code": 40675,
+          "name": "Katkhan"
+        },
+        {
+          "id": "uttarkashi-282-40676",
+          "code": 40676,
+          "name": "Badsi"
+        },
+        {
+          "id": "uttarkashi-282-40677",
+          "code": 40677,
+          "name": "Gailari"
+        },
+        {
+          "id": "uttarkashi-282-40678",
+          "code": 40678,
+          "name": "Bharkot"
+        },
+        {
+          "id": "uttarkashi-282-40679",
+          "code": 40679,
+          "name": "Anol"
+        },
+        {
+          "id": "uttarkashi-282-40680",
+          "code": 40680,
+          "name": "Hadiyari"
+        },
+        {
+          "id": "uttarkashi-282-40681",
+          "code": 40681,
+          "name": "Badhar Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40682",
+          "code": 40682,
+          "name": "Malli"
+        },
+        {
+          "id": "uttarkashi-282-40683",
+          "code": 40683,
+          "name": "Bagori"
+        },
+        {
+          "id": "uttarkashi-282-40684",
+          "code": 40684,
+          "name": "Kawagadi"
+        },
+        {
+          "id": "uttarkashi-282-40685",
+          "code": 40685,
+          "name": "Kumrada"
+        },
+        {
+          "id": "uttarkashi-282-40686",
+          "code": 40686,
+          "name": "Jogiyara"
+        },
+        {
+          "id": "uttarkashi-282-40687",
+          "code": 40687,
+          "name": "Baldogi"
+        },
+        {
+          "id": "uttarkashi-282-40688",
+          "code": 40688,
+          "name": "Bankot"
+        },
+        {
+          "id": "uttarkashi-282-40689",
+          "code": 40689,
+          "name": "Jagar Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40690",
+          "code": 40690,
+          "name": "Thati Dichli"
+        },
+        {
+          "id": "uttarkashi-282-40691",
+          "code": 40691,
+          "name": "Kyari"
+        },
+        {
+          "id": "uttarkashi-282-40692",
+          "code": 40692,
+          "name": "Bhengwal Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40693",
+          "code": 40693,
+          "name": "Shreekot"
+        },
+        {
+          "id": "uttarkashi-282-40694",
+          "code": 40694,
+          "name": "Sarph"
+        },
+        {
+          "id": "uttarkashi-282-40695",
+          "code": 40695,
+          "name": "Khalsi"
+        },
+        {
+          "id": "uttarkashi-282-40696",
+          "code": 40696,
+          "name": "Jogat Malla"
+        },
+        {
+          "id": "uttarkashi-282-40697",
+          "code": 40697,
+          "name": "Jogat Bichlla"
+        },
+        {
+          "id": "uttarkashi-282-40698",
+          "code": 40698,
+          "name": "Jogat Talla"
+        },
+        {
+          "id": "uttarkashi-282-40699",
+          "code": 40699,
+          "name": "Gadwalgad"
+        },
+        {
+          "id": "uttarkashi-282-40700",
+          "code": 40700,
+          "name": "Barol"
+        },
+        {
+          "id": "uttarkashi-282-40701",
+          "code": 40701,
+          "name": "Mani Chhoti"
+        },
+        {
+          "id": "uttarkashi-282-40702",
+          "code": 40702,
+          "name": "Bhald Gaon"
+        },
+        {
+          "id": "uttarkashi-282-40703",
+          "code": 40703,
+          "name": "Mani Bari"
+        },
+        {
+          "id": "uttarkashi-282-40704",
+          "code": 40704,
+          "name": "F-1 (P-1)"
+        },
+        {
+          "id": "uttarkashi-282-40705",
+          "code": 40705,
+          "name": "F-1 (P-2)"
+        },
+        {
+          "id": "uttarkashi-282-40706",
+          "code": 40706,
+          "name": "Dharasu Range (P-2)"
+        },
+        {
+          "id": "uttarkashi-282-40707",
+          "code": 40707,
+          "name": "Dharasu Range (P-3)"
+        }
+      ]
+    },
+    {
+      "id": "uttarkashi-283",
+      "code": 283,
+      "name": "Bhatwari",
+      "villages": [
+        {
+          "id": "uttarkashi-283-40708",
+          "code": 40708,
+          "name": "Jadung"
+        },
+        {
+          "id": "uttarkashi-283-40709",
+          "code": 40709,
+          "name": "Nelang"
+        },
+        {
+          "id": "uttarkashi-283-40710",
+          "code": 40710,
+          "name": "Mukhawa"
+        },
+        {
+          "id": "uttarkashi-283-40711",
+          "code": 40711,
+          "name": "Dharali"
+        },
+        {
+          "id": "uttarkashi-283-40712",
+          "code": 40712,
+          "name": "Bagori"
+        },
+        {
+          "id": "uttarkashi-283-40713",
+          "code": 40713,
+          "name": "Harshil"
+        },
+        {
+          "id": "uttarkashi-283-40714",
+          "code": 40714,
+          "name": "Purali"
+        },
+        {
+          "id": "uttarkashi-283-40715",
+          "code": 40715,
+          "name": "Jhala"
+        },
+        {
+          "id": "uttarkashi-283-40716",
+          "code": 40716,
+          "name": "Jaspur"
+        },
+        {
+          "id": "uttarkashi-283-40717",
+          "code": 40717,
+          "name": "Sukki"
+        },
+        {
+          "id": "uttarkashi-283-40718",
+          "code": 40718,
+          "name": "Bhangeli"
+        },
+        {
+          "id": "uttarkashi-283-40719",
+          "code": 40719,
+          "name": "Sungar"
+        },
+        {
+          "id": "uttarkashi-283-40720",
+          "code": 40720,
+          "name": "Tihar"
+        },
+        {
+          "id": "uttarkashi-283-40721",
+          "code": 40721,
+          "name": "Kunjan"
+        },
+        {
+          "id": "uttarkashi-283-40722",
+          "code": 40722,
+          "name": "Barsu"
+        },
+        {
+          "id": "uttarkashi-283-40723",
+          "code": 40723,
+          "name": "Pala Maradi"
+        },
+        {
+          "id": "uttarkashi-283-40724",
+          "code": 40724,
+          "name": "Kyark"
+        },
+        {
+          "id": "uttarkashi-283-40725",
+          "code": 40725,
+          "name": "Raithal"
+        },
+        {
+          "id": "uttarkashi-283-40726",
+          "code": 40726,
+          "name": "Bandrani"
+        },
+        {
+          "id": "uttarkashi-283-40727",
+          "code": 40727,
+          "name": "Bhatwari"
+        },
+        {
+          "id": "uttarkashi-283-40728",
+          "code": 40728,
+          "name": "Natin"
+        },
+        {
+          "id": "uttarkashi-283-40729",
+          "code": 40729,
+          "name": "Dwari"
+        },
+        {
+          "id": "uttarkashi-283-40730",
+          "code": 40730,
+          "name": "Pahi"
+        },
+        {
+          "id": "uttarkashi-283-40731",
+          "code": 40731,
+          "name": "Malla"
+        },
+        {
+          "id": "uttarkashi-283-40732",
+          "code": 40732,
+          "name": "Lata"
+        },
+        {
+          "id": "uttarkashi-283-40733",
+          "code": 40733,
+          "name": "Kumalti"
+        },
+        {
+          "id": "uttarkashi-283-40734",
+          "code": 40734,
+          "name": "Gorsali"
+        },
+        {
+          "id": "uttarkashi-283-40735",
+          "code": 40735,
+          "name": "Jokani"
+        },
+        {
+          "id": "uttarkashi-283-40736",
+          "code": 40736,
+          "name": "Sainj"
+        },
+        {
+          "id": "uttarkashi-283-40737",
+          "code": 40737,
+          "name": "Jakhol"
+        },
+        {
+          "id": "uttarkashi-283-40738",
+          "code": 40738,
+          "name": "Aungee"
+        },
+        {
+          "id": "uttarkashi-283-40739",
+          "code": 40739,
+          "name": "Kaneth"
+        },
+        {
+          "id": "uttarkashi-283-40740",
+          "code": 40740,
+          "name": "Maneri"
+        },
+        {
+          "id": "uttarkashi-283-40741",
+          "code": 40741,
+          "name": "Didsari"
+        },
+        {
+          "id": "uttarkashi-283-40742",
+          "code": 40742,
+          "name": "Wayra May Lunthu"
+        },
+        {
+          "id": "uttarkashi-283-40743",
+          "code": 40743,
+          "name": "Jamak"
+        },
+        {
+          "id": "uttarkashi-283-40744",
+          "code": 40744,
+          "name": "Kamar"
+        },
+        {
+          "id": "uttarkashi-283-40745",
+          "code": 40745,
+          "name": "Syawa"
+        },
+        {
+          "id": "uttarkashi-283-40746",
+          "code": 40746,
+          "name": "Salu"
+        },
+        {
+          "id": "uttarkashi-283-40747",
+          "code": 40747,
+          "name": "Sari"
+        },
+        {
+          "id": "uttarkashi-283-40748",
+          "code": 40748,
+          "name": "Saura"
+        },
+        {
+          "id": "uttarkashi-283-40749",
+          "code": 40749,
+          "name": "Bhela Tipri"
+        },
+        {
+          "id": "uttarkashi-283-40750",
+          "code": 40750,
+          "name": "Salang"
+        },
+        {
+          "id": "uttarkashi-283-40751",
+          "code": 40751,
+          "name": "Bhukki"
+        },
+        {
+          "id": "uttarkashi-283-40752",
+          "code": 40752,
+          "name": "Hurri"
+        },
+        {
+          "id": "uttarkashi-283-40753",
+          "code": 40753,
+          "name": "Silla"
+        },
+        {
+          "id": "uttarkashi-283-40754",
+          "code": 40754,
+          "name": "Pilang"
+        },
+        {
+          "id": "uttarkashi-283-40755",
+          "code": 40755,
+          "name": "Jadao"
+        },
+        {
+          "id": "uttarkashi-283-40756",
+          "code": 40756,
+          "name": "Naugaon"
+        },
+        {
+          "id": "uttarkashi-283-40757",
+          "code": 40757,
+          "name": "Gajoli"
+        },
+        {
+          "id": "uttarkashi-283-40758",
+          "code": 40758,
+          "name": "Bhankoli"
+        },
+        {
+          "id": "uttarkashi-283-40759",
+          "code": 40759,
+          "name": "Dasda"
+        },
+        {
+          "id": "uttarkashi-283-40760",
+          "code": 40760,
+          "name": "Dandalka"
+        },
+        {
+          "id": "uttarkashi-283-40761",
+          "code": 40761,
+          "name": "Agoda"
+        },
+        {
+          "id": "uttarkashi-283-40762",
+          "code": 40762,
+          "name": "Seku"
+        },
+        {
+          "id": "uttarkashi-283-40763",
+          "code": 40763,
+          "name": "Uttron"
+        },
+        {
+          "id": "uttarkashi-283-40764",
+          "code": 40764,
+          "name": "Nalda Urf Bodhar"
+        },
+        {
+          "id": "uttarkashi-283-40765",
+          "code": 40765,
+          "name": "Gawana"
+        },
+        {
+          "id": "uttarkashi-283-40766",
+          "code": 40766,
+          "name": "Pata"
+        },
+        {
+          "id": "uttarkashi-283-40767",
+          "code": 40767,
+          "name": "Siror"
+        },
+        {
+          "id": "uttarkashi-283-40768",
+          "code": 40768,
+          "name": "Netala"
+        },
+        {
+          "id": "uttarkashi-283-40769",
+          "code": 40769,
+          "name": "Hina"
+        },
+        {
+          "id": "uttarkashi-283-40770",
+          "code": 40770,
+          "name": "Nismor"
+        },
+        {
+          "id": "uttarkashi-283-40771",
+          "code": 40771,
+          "name": "Gamdid Gaun"
+        },
+        {
+          "id": "uttarkashi-283-40772",
+          "code": 40772,
+          "name": "Sald Urph Maja Gaon"
+        },
+        {
+          "id": "uttarkashi-283-40773",
+          "code": 40773,
+          "name": "Gyanja"
+        },
+        {
+          "id": "uttarkashi-283-40774",
+          "code": 40774,
+          "name": "Vasuga"
+        },
+        {
+          "id": "uttarkashi-283-40775",
+          "code": 40775,
+          "name": "Sangrali"
+        },
+        {
+          "id": "uttarkashi-283-40776",
+          "code": 40776,
+          "name": "Bagyal Gaon"
+        },
+        {
+          "id": "uttarkashi-283-40777",
+          "code": 40777,
+          "name": "Athali"
+        },
+        {
+          "id": "uttarkashi-283-40778",
+          "code": 40778,
+          "name": "Chamkot"
+        },
+        {
+          "id": "uttarkashi-283-40779",
+          "code": 40779,
+          "name": "Dilsaur"
+        },
+        {
+          "id": "uttarkashi-283-40780",
+          "code": 40780,
+          "name": "Pokhari"
+        },
+        {
+          "id": "uttarkashi-283-40781",
+          "code": 40781,
+          "name": "Kansen"
+        },
+        {
+          "id": "uttarkashi-283-40782",
+          "code": 40782,
+          "name": "Dang"
+        },
+        {
+          "id": "uttarkashi-283-40783",
+          "code": 40783,
+          "name": "Joshiyara"
+        },
+        {
+          "id": "uttarkashi-283-40784",
+          "code": 40784,
+          "name": "Ladari"
+        },
+        {
+          "id": "uttarkashi-283-40785",
+          "code": 40785,
+          "name": "Kotiyal Gaon"
+        },
+        {
+          "id": "uttarkashi-283-40786",
+          "code": 40786,
+          "name": "Bonga"
+        },
+        {
+          "id": "uttarkashi-283-40787",
+          "code": 40787,
+          "name": "Bhailuda"
+        },
+        {
+          "id": "uttarkashi-283-40788",
+          "code": 40788,
+          "name": "Tiloth"
+        },
+        {
+          "id": "uttarkashi-283-40789",
+          "code": 40789,
+          "name": "Jaspur"
+        },
+        {
+          "id": "uttarkashi-283-40790",
+          "code": 40790,
+          "name": "Mando"
+        },
+        {
+          "id": "uttarkashi-283-40791",
+          "code": 40791,
+          "name": "Silyar"
+        },
+        {
+          "id": "uttarkashi-283-40792",
+          "code": 40792,
+          "name": "Nirakot"
+        },
+        {
+          "id": "uttarkashi-283-40793",
+          "code": 40793,
+          "name": "Mastari"
+        },
+        {
+          "id": "uttarkashi-283-40794",
+          "code": 40794,
+          "name": "Sarag"
+        },
+        {
+          "id": "uttarkashi-283-40795",
+          "code": 40795,
+          "name": "Thalan"
+        },
+        {
+          "id": "uttarkashi-283-40796",
+          "code": 40796,
+          "name": "Bongari"
+        },
+        {
+          "id": "uttarkashi-283-40797",
+          "code": 40797,
+          "name": "Kuroli"
+        },
+        {
+          "id": "uttarkashi-283-40798",
+          "code": 40798,
+          "name": "Kankrari"
+        },
+        {
+          "id": "uttarkashi-283-40799",
+          "code": 40799,
+          "name": "Manpur"
+        },
+        {
+          "id": "uttarkashi-283-40800",
+          "code": 40800,
+          "name": "Sara"
+        },
+        {
+          "id": "uttarkashi-283-40801",
+          "code": 40801,
+          "name": "Dhanpur"
+        },
+        {
+          "id": "uttarkashi-283-40802",
+          "code": 40802,
+          "name": "Dovalga Thalan"
+        },
+        {
+          "id": "uttarkashi-283-40803",
+          "code": 40803,
+          "name": "Aleth"
+        },
+        {
+          "id": "uttarkashi-283-40804",
+          "code": 40804,
+          "name": "Kisanpur"
+        },
+        {
+          "id": "uttarkashi-283-40805",
+          "code": 40805,
+          "name": "Taknaur Range"
+        },
+        {
+          "id": "uttarkashi-283-40806",
+          "code": 40806,
+          "name": "Barahat Range"
+        },
+        {
+          "id": "uttarkashi-283-40807",
+          "code": 40807,
+          "name": "Mukhem Range"
+        }
+      ]
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, Download, LogIn, ChevronDown } from 'lucide-react';
 import { siteConfig, navLinks } from '@/config/site';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 const moreLinks = [
   { label: 'About Us', href: '/about-us' },
@@ -16,6 +17,7 @@ const moreLinks = [
 ];
 
 export function Header() {
+  const { user, loading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -110,12 +112,23 @@ export function Header() {
               <Download className="w-4 h-4" />
               Download App
             </Link>
-            <Link
-              href="/become-a-worker"
-              className="px-4 py-2 text-sm font-semibold text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
-            >
-              Become a Worker
-            </Link>
+            {!loading && !user && (
+              <Link
+                href="/login"
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+              >
+                <LogIn className="w-4 h-4" />
+                Login
+              </Link>
+            )}
+            {!loading && user && (
+              <Link
+                href="/profile"
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+              >
+                Profile
+              </Link>
+            )}
             <Link
               href="/find-a-worker"
               className="px-4 py-2 text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors shadow-sm"
@@ -154,16 +167,27 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-3 grid grid-cols-2 gap-2">
-              <Link
-                href="/become-a-worker"
-                className="flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
-              >
-                Become a Worker
-              </Link>
+            <div className="pt-3 flex flex-col gap-2">
+              {!loading && !user && (
+                <Link
+                  href="/login"
+                  className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Login
+                </Link>
+              )}
+              {!loading && user && (
+                <Link
+                  href="/profile"
+                  className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  Profile
+                </Link>
+              )}
               <Link
                 href="/find-a-worker"
-                className="flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors"
+                className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors"
               >
                 Find a Worker
               </Link>

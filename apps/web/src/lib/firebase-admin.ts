@@ -31,10 +31,10 @@ function getAdminApp(): App {
 // ---------------------------------------------------------------------------
 
 /** Admin Firestore — bypasses security rules (server-only) */
-export const adminDb = getAdminFirestore(getAdminApp());
+export const adminDb = () => getAdminFirestore(getAdminApp());
 
 /** Admin Auth — verify ID tokens, manage users (server-only) */
-export const adminAuth = getAdminAuth(getAdminApp());
+export const adminAuth = () => getAdminAuth(getAdminApp());
 
 // ---------------------------------------------------------------------------
 // Token verification helper
@@ -49,5 +49,5 @@ export const adminAuth = getAdminAuth(getAdminApp());
  *   const decoded = await verifyIdToken(token);
  */
 export async function verifyIdToken(idToken: string) {
-  return adminAuth.verifyIdToken(idToken);
+  return adminAuth().verifyIdToken(idToken);
 }

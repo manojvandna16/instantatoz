@@ -3,7 +3,7 @@
 // =============================================================
 
 // Client SDK
-export { default as app, auth, db, storage } from './firebase';
+export { default as app, auth, db } from './firebase';
 
 // Analytics
 export { logEvent, logPageView, analyticsEvents } from './analytics';

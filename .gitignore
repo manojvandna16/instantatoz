@@ -35,6 +35,15 @@ backend/dist/
 **/.firebase/
 
 # -----------------------------------------------
+# Service Account Keys — NEVER commit these
+# -----------------------------------------------
+*-adminsdk-*.json
+sa-key.json
+service-account.json
+deploy.bat
+
+
+# -----------------------------------------------
 # Vercel (admin panel should NOT go to Vercel)
 # -----------------------------------------------
 **/.vercel/
