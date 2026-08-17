@@ -6,8 +6,6 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, Download, LogIn, ChevronDown } from 'lucide-react';
 import { siteConfig, navLinks } from '@/config/site';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/components/providers/AuthProvider';
-
 const moreLinks = [
   { label: 'About Us', href: '/about-us' },
   { label: 'Safety', href: '/safety' },
@@ -17,7 +15,6 @@ const moreLinks = [
 ];
 
 export function Header() {
-  const { user, loading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -34,8 +31,7 @@ export function Header() {
     setMoreOpen(false);
   }, [pathname]);
 
-  const mainNavLinks = navLinks.slice(0, 6);
-
+  const mainNavLinks = navLinks.slice(0, 5);
   return (
     <header
       className={cn(
@@ -60,13 +56,13 @@ export function Header() {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
+          <nav className="hidden lg:flex flex-1 justify-center items-center gap-2" aria-label="Main navigation">
             {mainNavLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
                   pathname === link.href
                     ? 'text-blue-700 bg-blue-50'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -80,7 +76,7 @@ export function Header() {
             <div className="relative">
               <button
                 onClick={() => setMoreOpen(!moreOpen)}
-                className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                 aria-expanded={moreOpen}
                 aria-haspopup="true"
               >
@@ -88,7 +84,7 @@ export function Header() {
                 <ChevronDown className={cn('w-4 h-4 transition-transform', moreOpen && 'rotate-180')} />
               </button>
               {moreOpen && (
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
                   {moreLinks.map((link) => (
                     <Link
                       key={link.href}
@@ -107,31 +103,13 @@ export function Header() {
           <div className="hidden lg:flex items-center gap-3">
             <Link
               href="/download-app"
-              className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 hover:text-blue-700 transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-100 rounded-full hover:bg-blue-100 transition-colors"
             >
-              <Download className="w-4 h-4" />
-              Download App
+              Become a Worker
             </Link>
-            {!loading && !user && (
-              <Link
-                href="/login"
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-              >
-                <LogIn className="w-4 h-4" />
-                Login
-              </Link>
-            )}
-            {!loading && user && (
-              <Link
-                href="/profile"
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-              >
-                Profile
-              </Link>
-            )}
             <Link
               href="/find-a-worker"
-              className="px-4 py-2 text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors shadow-sm"
+              className="px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors shadow-md shadow-blue-200"
             >
               Find a Worker
             </Link>
@@ -167,27 +145,16 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-3 flex flex-col gap-2">
-              {!loading && !user && (
-                <Link
-                  href="/login"
-                  className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Login
-                </Link>
-              )}
-              {!loading && user && (
-                <Link
-                  href="/profile"
-                  className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                >
-                  Profile
-                </Link>
-              )}
+            <div className="pt-3 flex flex-col gap-3">
+              <Link
+                href="/download-app"
+                className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-100 rounded-full hover:bg-blue-100 transition-colors"
+              >
+                Become a Worker
+              </Link>
               <Link
                 href="/find-a-worker"
-                className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors"
+                className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors shadow-sm"
               >
                 Find a Worker
               </Link>
