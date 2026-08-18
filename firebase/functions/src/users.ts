@@ -1,5 +1,5 @@
-ï»¿/**
- * users.ts â€” Cloud Functions for user profile management
+/**
+ * users.ts — Cloud Functions for user profile management
  * Ported from apps/web/src/app/actions/user.ts
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
@@ -42,12 +42,12 @@ export const createUserProfile = onCall(
     const result = await db.runTransaction(async (transaction) => {
       const userDoc = await transaction.get(userRef);
 
-      // Returning user â€” just return existing profile
+      // Returning user — just return existing profile
       if (userDoc.exists) {
         return { isNew: false, data: userDoc.data() };
       }
 
-      // New user â€” consent is required
+      // New user — consent is required
       if (!consentVersions) {
         throw new HttpsError(
           'invalid-argument',
@@ -105,3 +105,5 @@ export const createUserProfile = onCall(
     return result;
   }
 );
+
+

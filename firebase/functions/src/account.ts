@@ -1,5 +1,5 @@
-ï»¿/**
- * account.ts â€” Cloud Functions for account management
+/**
+ * account.ts — Cloud Functions for account management
  * Ported from apps/web/src/app/actions/account.ts
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
@@ -7,7 +7,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 
 /**
- * Stop being a worker â€” removes worker capability, keeps customer account.
+ * Stop being a worker — removes worker capability, keeps customer account.
  * Worker profile is anonymized (not deleted).
  */
 export const stopBeingWorker = onCall(
@@ -42,7 +42,7 @@ export const stopBeingWorker = onCall(
 );
 
 /**
- * Full account deletion â€” Play Store compliance requirement.
+ * Full account deletion — Play Store compliance requirement.
  * Anonymizes customer + worker data.
  * Retains financial/legal records (marked for legal review).
  * Deletes Firebase Auth account.
@@ -57,7 +57,7 @@ export const deleteFullAccount = onCall(
     const uid = request.auth.uid;
     const db = getFirestore();
 
-    // 1. Check for active jobs â€” cannot delete during active job
+    // 1. Check for active jobs — cannot delete during active job
     const activeJobsSnap = await db
       .collection('jobs')
       .where('customerId', '==', uid)
@@ -105,9 +105,11 @@ export const deleteFullAccount = onCall(
       });
     }
 
-    // 4. Delete Firebase Auth â€” prevents future logins
+    // 4. Delete Firebase Auth — prevents future logins
     await getAuth().deleteUser(uid);
 
     return { success: true };
   }
 );
+
+

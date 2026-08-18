@@ -1,8 +1,10 @@
-﻿{
+{
   "name": "instantatoz-functions",
   "version": "1.0.0",
   "description": "Firebase Cloud Functions for Instantatoz mobile backend",
-  "engines": { "node": "20" },
+  "engines": {
+    "node": "22"
+  },
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
@@ -11,7 +13,7 @@
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",
-    "firebase-functions": "^6.0.0",
+    "firebase-functions": "^7.3.2",
     "geofire-common": "^6.0.0"
   },
   "devDependencies": {

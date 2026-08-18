@@ -1,5 +1,5 @@
-ï»¿/**
- * geo.ts â€” Cloud Function for nearby worker geo-matching
+/**
+ * geo.ts — Cloud Function for nearby worker geo-matching
  * Ported from apps/web/src/app/actions/geo.ts
  * Uses GeoHash for candidate discovery + Haversine for precise distance
  */
@@ -104,7 +104,7 @@ export const getNearbyWorkers = onCall(
         // Optional category filter
         if (category && data.category !== category) continue;
 
-        // Optional skill filter â€” worker must have AT LEAST ONE matching skill
+        // Optional skill filter — worker must have AT LEAST ONE matching skill
         if (skills && skills.length > 0) {
           const workerSkills: string[] = data.skills || [];
           const hasMatchingSkill = skills.some((s) =>
@@ -142,3 +142,5 @@ export const getNearbyWorkers = onCall(
     return { workers: results, count: results.length, radiusKm: clampedRadius };
   }
 );
+
+

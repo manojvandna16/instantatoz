@@ -1,7 +1,7 @@
-ï»¿/**
- * jobs.ts â€” Job lifecycle Cloud Functions
+/**
+ * jobs.ts — Job lifecycle Cloud Functions
  * PHASE 5 IMPLEMENTATION
- * Stub created â€” functions will be implemented in Phase 5
+ * Stub created — functions will be implemented in Phase 5
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 
@@ -39,3 +39,5 @@ export const cancelJob = onCall(
     throw new HttpsError('unimplemented', 'Job cancellation will be implemented in Phase 5.');
   }
 );
+
+

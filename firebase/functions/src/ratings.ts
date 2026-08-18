@@ -1,7 +1,7 @@
-ï»¿/**
- * ratings.ts â€” Two-way rating system
+/**
+ * ratings.ts — Two-way rating system
  * Idempotent: review_{jobId}_{raterUid} prevents duplicates
- * Server controls averageRating and completedJobs â€” clients cannot modify
+ * Server controls averageRating and completedJobs — clients cannot modify
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
@@ -55,7 +55,7 @@ export const submitRating = onCall(
       );
     }
 
-    // Idempotent review key â€” prevents duplicate ratings
+    // Idempotent review key — prevents duplicate ratings
     const reviewKey = `review_${jobId}_${raterUid}`;
     const reviewRef = db.collection('reviews').doc(reviewKey);
     const existingReview = await reviewRef.get();
@@ -87,7 +87,7 @@ export const submitRating = onCall(
         transaction.update(jobRef, { workerRatedCustomer: true });
       }
 
-      // Update worker stats (server-controlled â€” clients cannot do this)
+      // Update worker stats (server-controlled — clients cannot do this)
       if (isWorkerReview) {
         const workerRef = db.collection('workers').doc(revieweeId);
         const workerDoc = await transaction.get(workerRef);
@@ -110,3 +110,5 @@ export const submitRating = onCall(
     return { success: true };
   }
 );
+
+

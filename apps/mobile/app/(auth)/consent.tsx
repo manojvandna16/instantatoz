@@ -8,7 +8,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Linking, Activity
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import auth from '@react-native-firebase/auth';
-import functions from '@react-native-firebase/functions';
+import { callApi } from '../../src/services/api';
 import { COLORS, LEGAL_URLS, TERMS_VERSION, PRIVACY_VERSION } from '../../src/constants';
 
 export default function ConsentScreen() {
@@ -21,14 +21,13 @@ export default function ConsentScreen() {
       const user = auth().currentUser;
       if (!user) throw new Error('Not authenticated');
 
-      // Call Cloud Function to create user profile with USR-XXXXXX
-      const fn = functions().useRegion('asia-south1');
-      await fn.httpsCallable('createUserProfile')({
+      // Call Vercel API to create user profile
+      await callApi('createUserProfile', {
+        name: user.displayName || '',
         consentVersions: {
           termsVersion: TERMS_VERSION,
           privacyVersion: PRIVACY_VERSION,
         },
-        name: user.displayName || '',
       });
 
       // Root layout will detect profile and redirect to customer home
@@ -45,7 +44,7 @@ export default function ConsentScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.iconWrap}>
-          <Text style={styles.icon}>🤝</Text>
+          <Text style={styles.icon}>??</Text>
         </View>
         <Text style={styles.title}>Welcome to{'\n'}Instantatoz</Text>
         <Text style={styles.subtitle}>
@@ -55,10 +54,10 @@ export default function ConsentScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>What we collect</Text>
           {[
-            { icon: '📱', text: 'Your phone number for authentication' },
-            { icon: '👤', text: 'Your name and profile information' },
-            { icon: '📍', text: 'Your location when you search for workers nearby' },
-            { icon: '💼', text: 'Your job history and booking records' },
+            { icon: '??', text: 'Your phone number for authentication' },
+            { icon: '??', text: 'Your name and profile information' },
+            { icon: '??', text: 'Your location when you search for workers nearby' },
+            { icon: '??', text: 'Your job history and booking records' },
           ].map((item, i) => (
             <View key={i} style={styles.listRow}>
               <Text style={styles.listIcon}>{item.icon}</Text>
@@ -70,7 +69,7 @@ export default function ConsentScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Your rights</Text>
           <Text style={styles.cardBody}>
-            You can delete your account at any time from Profile → Settings → Delete Account.
+            You can delete your account at any time from Profile ? Settings ? Delete Account.
             We do not sell your personal data.
           </Text>
         </View>
@@ -116,3 +115,6 @@ const styles = StyleSheet.create({
   btn: { backgroundColor: COLORS.primary, paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
   btnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
 });
+
+
+

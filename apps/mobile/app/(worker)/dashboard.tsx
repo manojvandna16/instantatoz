@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
 import { useModeStore } from '../../src/store/modeStore';
 import { COLORS, WORKER_STATUS } from '../../src/constants';
+import { callApi } from '../../src/services/api';
 
 export default function WorkerDashboard() {
   const router = useRouter();
@@ -21,13 +22,24 @@ export default function WorkerDashboard() {
     router.replace('/(customer)/home');
   }
 
-  function handleGoOnline() {
-    // Phase 1: Show info message — full GPS implementation in Phase 3
-    Alert.alert(
-      'Go Online',
-      'When you tap Go Online, Instantatoz will use your live GPS location to match you with nearby customers.\n\nFull live matching will be enabled in the next update.',
-      [{ text: 'OK' }]
-    );
+  async function handleGoOnline() {
+    try {
+      if (!isOnline) {
+        // Going online - need fake location for now until GPS is added in Phase 3
+        const fakeLocation = { latitude: 28.6139, longitude: 77.2090 }; // Delhi
+        await callApi('updateWorkerOnlineStatus', {
+          isOnline: true,
+          location: fakeLocation,
+        });
+        Alert.alert('Online', 'You are now online and visible to customers!');
+      } else {
+        // Going offline
+        await callApi('updateWorkerOnlineStatus', { isOnline: false });
+        Alert.alert('Offline', 'You are now offline.');
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to update status');
+    }
   }
 
   if (!workerProfile || workerProfile.verificationStatus !== WORKER_STATUS.ACTIVE) {
@@ -152,3 +164,4 @@ const styles = StyleSheet.create({
   skillChip: { backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   skillText: { color: 'rgba(255,255,255,0.9)', fontSize: 12 },
 });
+

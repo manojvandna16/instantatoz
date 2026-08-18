@@ -9,6 +9,8 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert,
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, LEGAL_URLS, SERVICE_CATEGORIES } from '../../src/constants';
+import { callApi } from '../../src/services/api';
+import { useAuthStore } from '../../src/store/authStore';
 
 export default function BecomeWorkerScreen() {
   const router = useRouter();
@@ -32,12 +34,29 @@ export default function BecomeWorkerScreen() {
     setSkills(skills.filter((s) => s !== sk));
   }
 
-  function handleSubmit() {
-    Alert.alert(
-      'Registration Submitted',
-      'Your worker application has been submitted for review. You will be notified once verified (usually 1-3 business days).\n\nFull registration with document upload will be enabled in the next update.',
-      [{ text: 'OK', onPress: () => router.back() }]
-    );
+  const { workerProfile } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit() {
+    setLoading(true);
+    try {
+      await callApi('registerWorker', {
+        category,
+        skills,
+        hourlyRate,
+        experience,
+      });
+      
+      Alert.alert(
+        'Registration Submitted',
+        'Your worker application has been submitted for review. You will be notified once verified (usually 1-3 business days).',
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to submit application');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -197,3 +216,4 @@ const styles = StyleSheet.create({
   checkLabel: { flex: 1, fontSize: 14, color: COLORS.text, lineHeight: 20 },
   link: { color: COLORS.primary, textDecorationLine: 'underline' },
 });
+

@@ -1,5 +1,5 @@
-﻿/**
- * notifications.ts — Cloud Function for device token management
+/**
+ * notifications.ts � Cloud Function for device token management
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
@@ -44,3 +44,5 @@ export const registerDeviceToken = onCall(
     return { success: true };
   }
 );
+
+
