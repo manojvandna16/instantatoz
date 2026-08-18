@@ -40,6 +40,12 @@ service cloud.firestore {
       allow update: if isOwner(userId) 
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userNumber', 'consent', 'status']);
       allow delete: if false;
+
+      // devices subcollection — FCM tokens for push notifications
+      // Supports multiple devices per user account
+      match /devices/{deviceId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // =========================================================

@@ -9,7 +9,9 @@ export type WorkerRegistrationInput = {
   phone: string;
   email?: string;
   profilePhotoUrl: string;
-  skills: string[];
+  category: string;         // e.g. "Electrician" — was missing, now added
+  skills: string[];         // Multiple skills array
+  hourlyRate: number;       // Worker's rate per hour — was missing, now added
   experience: string;
   location: {
     country: string;
@@ -23,6 +25,7 @@ export type WorkerRegistrationInput = {
     villageId: string;
   };
 };
+
 
 export async function registerWorkerAction(idToken: string, data: WorkerRegistrationInput) {
   try {
@@ -61,13 +64,19 @@ export async function registerWorkerAction(idToken: string, data: WorkerRegistra
         phone: data.phone,
         email: data.email || '',
         profilePhoto: data.profilePhotoUrl,
+        category: data.category,           // ✅ Now stored
         skills: data.skills,
+        hourlyRate: data.hourlyRate,        // ✅ Now stored
         experience: data.experience,
         registeredLocation: data.location,
         
         workerNumber,
         verificationStatus: 'PENDING',
         status: 'OFFLINE',
+        isOnline: false,
+        liveLocation: null,
+        geohash: null,
+        activeJobId: null,
         rating: 0,
         totalJobs: 0,
         consent: {
@@ -80,6 +89,7 @@ export async function registerWorkerAction(idToken: string, data: WorkerRegistra
           averageRating: 0,
           ratingCount: 0
         },
+        joinedAt: FieldValue.serverTimestamp(),  // ✅ Now stored (admin queue uses this)
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       };
