@@ -1,10 +1,10 @@
-﻿/**
+/**
  * workers.ts — Cloud Functions for worker profile management
  * Ported and extended from apps/web/src/app/become-a-worker/actions.ts
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { geohashForPoint } from 'geofire-common';
+import { geohashForLocation } from 'geofire-common';
 
 const WORKER_TERMS_VERSION = '2026-08-01';
 
@@ -193,7 +193,7 @@ export const updateWorkerOnlineStatus = onCall(
         );
       }
 
-      const geohash = geohashForPoint([lat, lng]);
+      const geohash = geohashForLocation([lat, lng]);
 
       await workerRef.update({
         isOnline: true,
