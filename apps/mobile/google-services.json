@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "423176154131",
+    "project_id": "instantatoz",
+    "storage_bucket": "instantatoz.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:423176154131:android:c24253ddc5ee7575dae3e6",
+        "android_client_info": {
+          "package_name": "com.instantatoz.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "423176154131-v7i2id8eruo6mv2tgkbmfne05fmnpruu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCoT8znogqt0YJt6Fho5PsP7BTYL7HnTf4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "423176154131-v7i2id8eruo6mv2tgkbmfne05fmnpruu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,4 +1,4 @@
-﻿{
+{
   "expo": {
     "name": "Instantatoz",
     "slug": "instantatoz",
@@ -53,8 +53,12 @@
     },
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "2535d47a-8f30-4e50-8a75-a6e06b5a2422"
+      },
+      "router": {
+        "origin": false
       }
-    }
+    },
+    "owner": "manojbhatt900"
   }
 }

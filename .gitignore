@@ -73,7 +73,8 @@ npm-debug.log*
 coverage/
 
 # Mobile app
-apps/mobile/google-services.json
+# Note: google-services.json is committed intentionally for EAS Cloud Build
+# It is safe as API key is restricted to com.instantatoz.app package
 apps/mobile/GoogleService-Info.plist
 apps/mobile/.env
 apps/mobile/android/
