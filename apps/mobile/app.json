@@ -7,8 +7,11 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
       "backgroundColor": "#1d4ed8"
     },
+    "icon": "./assets/icon.png",
     "android": {
       "package": "com.instantatoz.app",
       "versionCode": 1,
@@ -16,35 +19,19 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1d4ed8"
       },
-      "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_BACKGROUND_LOCATION",
-        "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE",
-        "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.CAMERA"
       ]
     },
     "plugins": [
       "expo-router",
-      "@react-native-firebase/app",
-      "@react-native-firebase/auth",
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Instantatoz uses your location to find nearby workers and send you job requests.",
-          "locationAlwaysPermission": "Instantatoz needs your background location to send you nearby job notifications when you are Online.",
           "locationWhenInUsePermission": "Instantatoz uses your location to show nearby available workers."
-        }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#1d4ed8"
         }
       ]
     ],

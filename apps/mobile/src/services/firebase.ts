@@ -1,25 +1,23 @@
-/**
- * src/services/firebase.ts
- * Firebase initialization for React Native (@react-native-firebase)
- * Firebase is auto-initialized from google-services.json — no explicit init needed
- */
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
-import storage from '@react-native-firebase/storage';
-import functions from '@react-native-firebase/functions';
-import messaging from '@react-native-firebase/messaging';
+ï»¿import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Typed accessors — use these throughout the app
-export const getAuth = () => auth();
-export const getDb = () => firestore();
-export const getStorage = () => storage();
-export const getFunctions = () => functions().useRegion('asia-south1');
-export const getMessaging = () => messaging();
+const firebaseConfig = {
+  apiKey: "AIzaSyCoT8znogqt0YJt6Fho5PsP7BTYL7HnTf4",
+  authDomain: "instantatoz.firebaseapp.com",
+  projectId: "instantatoz",
+  storageBucket: "instantatoz.firebasestorage.app",
+  messagingSenderId: "423176154131",
+  appId: "1:423176154131:android:c24253ddc5ee7575dae3e6",
+};
 
-// Firestore server timestamp helper
-export const serverTimestamp = () => firestore.FieldValue.serverTimestamp();
-export const arrayUnion = (...items: unknown[]) => firestore.FieldValue.arrayUnion(...items);
-export const arrayRemove = (...items: unknown[]) => firestore.FieldValue.arrayRemove(...items);
-export const deleteField = () => firestore.FieldValue.delete();
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 
+export const db = getFirestore(app);
+
+export default app;
