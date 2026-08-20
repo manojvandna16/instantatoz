@@ -31,7 +31,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Instantatoz uses your location to show nearby available workers."
+          "locationWhenInUsePermission": "Instantatoz uses your location to show nearby workers."
         }
       ]
     ],
