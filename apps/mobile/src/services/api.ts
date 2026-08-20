@@ -2,7 +2,7 @@
  * src/services/api.ts
  * Unified API Client to call Vercel (Next.js) backend instead of Firebase Cloud Functions
  */
-import auth from '@react-native-firebase/auth';
+import { auth } from './firebase';
 
 // Update this to your deployed Vercel domain in production
 // For Android Emulator targeting localhost, use 10.0.2.2
@@ -11,7 +11,7 @@ const BASE_URL = __DEV__
   : 'https://instantatoz.vercel.app/api/mobile';
 
 export async function callApi(action: string, data: any = {}) {
-  const user = auth().currentUser;
+  const user = auth.currentUser;
   if (!user) throw new Error('Not authenticated');
 
   const token = await user.getIdToken();
@@ -33,3 +33,4 @@ export async function callApi(action: string, data: any = {}) {
 
   return result;
 }
+

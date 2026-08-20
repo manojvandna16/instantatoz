@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Linking, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import auth from '@react-native-firebase/auth';
+import { auth } from '../../src/services/firebase';
 import { callApi } from '../../src/services/api';
 import { COLORS, LEGAL_URLS, TERMS_VERSION, PRIVACY_VERSION } from '../../src/constants';
 
@@ -18,7 +18,7 @@ export default function ConsentScreen() {
   async function handleAgree() {
     setLoading(true);
     try {
-      const user = auth().currentUser;
+      const user = auth.currentUser;
       if (!user) throw new Error('Not authenticated');
 
       // Call Vercel API to create user profile
@@ -115,6 +115,7 @@ const styles = StyleSheet.create({
   btn: { backgroundColor: COLORS.primary, paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
   btnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
 });
+
 
 
 

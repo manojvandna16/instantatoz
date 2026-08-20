@@ -1,51 +1,26 @@
-﻿/**
- * src/services/auth.service.ts
- * Firebase Phone OTP Authentication
- */
-import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+﻿import { auth } from "./firebase";
+import { signInWithPhoneNumber, signOut as firebaseSignOut, onAuthStateChanged as firebaseOnAuthStateChanged } from "firebase/auth";
 
-/**
- * Send OTP to Indian phone number.
- * @param phone - 10-digit number (will be prefixed with +91)
- */
-export async function sendOTP(phone: string): Promise<FirebaseAuthTypes.ConfirmationResult> {
-  const formatted = phone.startsWith('+') ? phone : `+91${phone}`;
-  return auth().signInWithPhoneNumber(formatted);
+export async function sendOTP(phoneNumber: string): Promise<any> {
+  const confirmation = await signInWithPhoneNumber(auth, phoneNumber);
+  return confirmation;
 }
 
-/**
- * Verify OTP and complete authentication.
- */
-export async function verifyOTP(
-  confirmation: FirebaseAuthTypes.ConfirmationResult,
-  otp: string
-): Promise<FirebaseAuthTypes.UserCredential> {
-  return confirmation.confirm(otp);
+export async function verifyOTP(confirmation: any, otp: string) {
+  const result = await confirmation.confirm(otp);
+  return result.user;
 }
 
-/** Sign out the current user. */
 export async function signOut(): Promise<void> {
-  return auth().signOut();
+  await firebaseSignOut(auth);
 }
 
-/** Get current authenticated user (or null). */
-export function getCurrentUser(): FirebaseAuthTypes.User | null {
-  return auth().currentUser;
-}
-
-/**
- * Get Firebase ID token for current user.
- * Used to call secure Cloud Functions via REST or SDK.
- */
-export async function getIdToken(): Promise<string> {
-  const user = auth().currentUser;
-  if (!user) throw new Error('No authenticated user');
+export async function getIdToken(): Promise<string | null> {
+  const user = auth.currentUser;
+  if (!user) return null;
   return user.getIdToken();
 }
 
-/** Subscribe to auth state changes. Returns unsubscribe function. */
-export function onAuthStateChanged(
-  callback: (user: FirebaseAuthTypes.User | null) => void
-): () => void {
-  return auth().onAuthStateChanged(callback);
+export function onAuthStateChanged(callback: (user: any) => void) {
+  return firebaseOnAuthStateChanged(auth, callback);
 }
