@@ -25,7 +25,7 @@ export default function PhoneScreen() {
     setError('');
     setLoading(true);
     try {
-      const confirmation = await sendOTP(phone);
+      const confirmation = await sendOTP('+91' + phone);
       router.push({
         pathname: '/(auth)/otp',
         params: {
@@ -137,3 +137,4 @@ const styles = StyleSheet.create({
   btnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
   note: { fontSize: 12, color: COLORS.textMuted, textAlign: 'center', marginTop: 16 },
 });
+
