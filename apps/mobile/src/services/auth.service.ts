@@ -1,26 +1,25 @@
-﻿import { auth } from "./firebase";
-import { signInWithPhoneNumber, signOut as firebaseSignOut, onAuthStateChanged as firebaseOnAuthStateChanged } from "firebase/auth";
+﻿import auth from '@react-native-firebase/auth';
 
 export async function sendOTP(phoneNumber: string): Promise<any> {
-  const confirmation = await signInWithPhoneNumber(auth, phoneNumber);
-  return confirmation;
+  // Returns confirmation object with confirmationResult.confirm method
+  return await auth().signInWithPhoneNumber(phoneNumber);
 }
 
-export async function verifyOTP(confirmation: any, otp: string) {
-  const result = await confirmation.confirm(otp);
-  return result.user;
+export async function verifyOTP(confirmationResult: any, otp: string) {
+  const userCredential = await confirmationResult.confirm(otp);
+  return userCredential.user;
 }
 
 export async function signOut(): Promise<void> {
-  await firebaseSignOut(auth);
+  await auth().signOut();
 }
 
 export async function getIdToken(): Promise<string | null> {
-  const user = auth.currentUser;
+  const user = auth().currentUser;
   if (!user) return null;
-  return user.getIdToken();
+  return await user.getIdToken();
 }
 
 export function onAuthStateChanged(callback: (user: any) => void) {
-  return firebaseOnAuthStateChanged(auth, callback);
+  return auth().onAuthStateChanged(callback);
 }
