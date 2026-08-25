@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
@@ -90,6 +90,7 @@ export async function POST(req: NextRequest) {
           skills: data.skills || [],
           hourlyRate: Number(data.hourlyRate),
           experience: data.experience || '',
+          profileUrl: data.profileUrl || null,
           verificationStatus: 'PENDING',
           isOnline: false,
           liveLocation: null,

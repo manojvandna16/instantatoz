@@ -1,16 +1,12 @@
-﻿/**
- * app/(shared)/become-worker.tsx
- * Worker registration screen — accessible ONLY from Profile > Settings
- * Phase 1: Form structure shown, Cloud Function call wired in Phase 2
- * STATUS: PARTIALLY IMPLEMENTED
- */
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, Linking, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import { COLORS, LEGAL_URLS, SERVICE_CATEGORIES } from '../../src/constants';
 import { callApi } from '../../src/services/api';
 import { useAuthStore } from '../../src/store/authStore';
+import { uploadWorkerPhoto } from '../../src/services/supabase';
 
 export default function BecomeWorkerScreen() {
   const router = useRouter();
@@ -21,6 +17,9 @@ export default function BecomeWorkerScreen() {
   const [hourlyRate, setHourlyRate] = useState('');
   const [experience, setExperience] = useState('');
   const [workerTerms, setWorkerTerms] = useState(false);
+  const [photoBase64, setPhotoBase64] = useState<string | null>(null);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   function addSkill() {
     const s = skillInput.trim();
@@ -34,17 +33,49 @@ export default function BecomeWorkerScreen() {
     setSkills(skills.filter((s) => s !== sk));
   }
 
-  const { workerProfile } = useAuthStore();
+  async function pickImage() {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('Permission Denied', 'We need access to your photos to upload a profile picture.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets && result.assets[0]) {
+      setPhotoUri(result.assets[0].uri);
+      setPhotoBase64(result.assets[0].base64 || null);
+    }
+  }
+
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit() {
+    if (!photoBase64) {
+      Alert.alert('Photo Required', 'Please select a profile photo to complete registration.');
+      return;
+    }
+    
     setLoading(true);
+    setUploading(true);
     try {
+      // 1. Upload photo to Supabase
+      const fileName = `profile_${Date.now()}.jpg`;
+      const uploadedUrl = await uploadWorkerPhoto(photoBase64, fileName);
+      
+      // 2. Register worker with Vercel API
       await callApi('registerWorker', {
         category,
         skills,
-        hourlyRate,
+        hourlyRate: Number(hourlyRate),
         experience,
+        profileUrl: uploadedUrl,
       });
       
       Alert.alert(
@@ -56,6 +87,7 @@ export default function BecomeWorkerScreen() {
       Alert.alert('Error', err.message || 'Failed to submit application');
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   }
 
@@ -141,13 +173,27 @@ export default function BecomeWorkerScreen() {
 
         {step === 3 && (
           <View>
-            <Text style={styles.sectionTitle}>Final Step</Text>
+            <Text style={styles.sectionTitle}>Upload Profile Photo</Text>
+            <Text style={styles.sectionDesc}>A clear profile photo is required for customer verification.</Text>
+            
+            <View style={styles.photoContainer}>
+              {photoUri ? (
+                <Image source={{ uri: photoUri }} style={styles.previewImage} />
+              ) : (
+                <View style={styles.photoPlaceholder}>
+                  <Text style={styles.placeholderText}>No photo selected</Text>
+                </View>
+              )}
+              <TouchableOpacity style={styles.uploadBtn} onPress={pickImage}>
+                <Text style={styles.uploadBtnText}>{photoUri ? 'Change Photo' : 'Select Photo'}</Text>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.infoCard}>
               <Text style={styles.infoTitle}>📋 What happens next</Text>
               <Text style={styles.infoText}>1. Our team reviews your application</Text>
               <Text style={styles.infoText}>2. Document verification (Aadhaar required)</Text>
               <Text style={styles.infoText}>3. You get notified when verified (1-3 days)</Text>
-              <Text style={styles.infoText}>4. Switch to Worker Mode from your Profile</Text>
             </View>
 
             <TouchableOpacity
@@ -166,11 +212,15 @@ export default function BecomeWorkerScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.nextBtn, !workerTerms && styles.btnDisabled]}
-              disabled={!workerTerms}
+              style={[styles.nextBtn, (!workerTerms || !photoUri || loading) && styles.btnDisabled]}
+              disabled={!workerTerms || !photoUri || loading}
               onPress={handleSubmit}
             >
-              <Text style={styles.nextBtnText}>Submit Application</Text>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.nextBtnText}>Submit Application</Text>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -206,7 +256,13 @@ const styles = StyleSheet.create({
   nextBtn: { backgroundColor: COLORS.primary, paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginTop: 8 },
   btnDisabled: { backgroundColor: COLORS.border },
   nextBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  infoCard: { backgroundColor: COLORS.background, borderRadius: 14, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: COLORS.border },
+  photoContainer: { alignItems: 'center', marginVertical: 20 },
+  photoPlaceholder: { width: 120, height: 120, borderRadius: 60, backgroundColor: COLORS.background, borderWidth: 1.5, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  placeholderText: { fontSize: 12, color: COLORS.textMuted },
+  previewImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 14 },
+  uploadBtn: { backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
+  uploadBtnText: { color: COLORS.primary, fontWeight: '600', fontSize: 13 },
+  infoCard: { backgroundColor: COLORS.background, borderRadius: 14, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: COLORS.border, marginTop: 10 },
   infoTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text, marginBottom: 10 },
   infoText: { fontSize: 13, color: COLORS.textMuted, marginBottom: 6 },
   checkRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 20 },
@@ -216,4 +272,3 @@ const styles = StyleSheet.create({
   checkLabel: { flex: 1, fontSize: 14, color: COLORS.text, lineHeight: 20 },
   link: { color: COLORS.primary, textDecorationLine: 'underline' },
 });
-
