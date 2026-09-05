@@ -1,11 +1,12 @@
-﻿/**
+/**
  * src/hooks/useAuth.ts
  * Subscribes to Firebase auth state and loads user + worker profiles from Firestore.
  * This is the central auth hook — used in root _layout.tsx
  */
 import { useEffect } from 'react';
 import { onAuthStateChanged } from '../services/auth.service';
-import { getDb } from '../services/firebase';
+import { auth } from '../services/firebase';
+import { db } from '../services/firebase';
 import { useAuthStore } from '../store/authStore';
 import { COLLECTIONS } from '../constants';
 
@@ -25,7 +26,6 @@ export function useAuth() {
 
       setLoading(true);
       setUid(firebaseUser.uid);
-      const db = getDb();
 
       try {
         // Load user profile and worker profile in parallel

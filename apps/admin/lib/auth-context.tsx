@@ -3,7 +3,6 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
 import { getFirebaseAuth, getFirebaseDb } from './firebase';
 import type { AdminUser } from '@/types';
 
@@ -29,28 +28,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // All Firebase calls inside useEffect — safe, only runs in browser
     const firebaseAuth = getFirebaseAuth();
-    const firebaseDb = getFirebaseDb();
 
     const unsubscribe = onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
         try {
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 5000));
-          const adminDoc = await Promise.race([
-            getDoc(doc(firebaseDb, 'admins', firebaseUser.uid)),
-            timeoutPromise
-          ]) as any;
-          if (adminDoc && adminDoc.exists && adminDoc.exists()) {
-            setAdminUser({ uid: firebaseUser.uid, email: firebaseUser.email!, ...adminDoc.data() } as AdminUser);
+          const idTokenResult = await firebaseUser.getIdTokenResult();
+          const claims = idTokenResult.claims;
+          if (claims.admin === true) {
+            const role = (claims.role as AdminUser['role']) || 'SUPER_ADMIN';
+            setAdminUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              role,
+              name: firebaseUser.displayName || 'Admin',
+              createdAt: new Date().toISOString(),
+              active: true,
+            });
           } else {
-            // Fallback for this specific user if Firestore check fails for any reason
-            setAdminUser({ uid: firebaseUser.uid, email: firebaseUser.email!, role: 'SUPER_ADMIN', name: 'Admin', createdAt: new Date().toISOString(), active: true });
+            setAdminUser(null);
           }
         } catch {
-          // Fallback if permission denied
-          setAdminUser({ uid: firebaseUser.uid, email: firebaseUser.email!, role: 'SUPER_ADMIN', name: 'Admin', createdAt: new Date().toISOString(), active: true });
+          setAdminUser(null);
         }
       } else {
         setUser(null);
@@ -63,24 +63,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const firebaseAuth = getFirebaseAuth();
-    const firebaseDb = getFirebaseDb();
     const cred = await signInWithEmailAndPassword(firebaseAuth, email, password);
-    
-    try {
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 5000));
-      const adminDoc = await Promise.race([
-        getDoc(doc(firebaseDb, 'admins', cred.user.uid)),
-        timeoutPromise
-      ]) as any;
-      if (!adminDoc || !adminDoc.exists || (!adminDoc.exists() && email !== 'manojbhatt900@gmail.com')) {
-        await signOut(firebaseAuth);
-        throw new Error('Access denied. This account is not authorized as an admin.');
-      }
-    } catch(e) {
-      if (email !== 'manojbhatt900@gmail.com') {
-        await signOut(firebaseAuth);
-        throw new Error('Access denied.');
-      }
+    await cred.user.getIdTokenResult(true);
+    const idTokenResult = await cred.user.getIdTokenResult();
+    const claims = idTokenResult.claims;
+    if (claims.admin !== true) {
+      await signOut(firebaseAuth);
+      throw new Error('Access denied. This account is not authorized as an admin.');
     }
 
     const token = await cred.user.getIdToken();

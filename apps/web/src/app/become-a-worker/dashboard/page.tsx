@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { Power, MapPin, Loader2, AlertCircle } from 'lucide-react';
 import { geohashForLocation } from 'geofire-common';
 
@@ -35,7 +35,7 @@ export default function WorkerDashboardPage() {
         }
         
         const data = workerDoc.data();
-        if (data.verificationStatus !== 'ACTIVE') {
+        if (data.verificationStatus !== 'APPROVED') {
           router.push('/become-a-worker/status');
           return;
         }
@@ -121,9 +121,9 @@ export default function WorkerDashboardPage() {
     const newState = forceState !== undefined ? forceState : !worker.isOnline;
 
     try {
-      await updateDoc(doc(db, 'workers', user.uid), {
-        isOnline: newState
-      });
+      const { callableFunction } = await import('@/lib/firebase');
+      const updateStatus = callableFunction<{ isOnline: boolean }>('updateWorkerOnlineStatus');
+      await updateStatus({ isOnline: newState, lat: 0, lng: 0 });
       
       setWorker({ ...worker, isOnline: newState });
 

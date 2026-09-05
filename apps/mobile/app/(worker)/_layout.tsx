@@ -1,69 +1,36 @@
-﻿/**
+/**
  * app/(worker)/_layout.tsx
- * Worker Mode bottom tabs — ONLY shown when user has VERIFIED worker profile
+ * Worker section with Bottom Tab Navigator
  */
-import { Tabs, useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { useAuthStore } from '../../src/store/authStore';
-import { COLORS, WORKER_STATUS } from '../../src/constants';
+import { Tabs } from 'expo-router';
+import { View, Text, StyleSheet } from 'react-native';
+
+function TabIcon({ emoji, label, focused }: { emoji: string; label: string; focused: boolean }) {
+  return (
+    <View style={styles.tabItem}>
+      <Text style={[styles.tabEmoji, focused && styles.tabEmojiActive]}>{emoji}</Text>
+      <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>{label}</Text>
+    </View>
+  );
+}
 
 export default function WorkerLayout() {
-  const router = useRouter();
-  const { workerProfile } = useAuthStore();
-
-  // Guard: if worker is not ACTIVE, redirect to customer
-  useEffect(() => {
-    if (!workerProfile || workerProfile.verificationStatus !== WORKER_STATUS.ACTIVE) {
-      router.replace('/(customer)/home');
-    }
-  }, [workerProfile]);
-
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: COLORS.secondary,
-        tabBarInactiveTintColor: COLORS.textMuted,
-        tabBarStyle: {
-          backgroundColor: '#1a1a2e',
-          borderTopColor: '#2d2d4e',
-          paddingBottom: 8,
-          height: 64,
-        },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginBottom: 2, color: COLORS.white },
-        tabBarActiveTintColor: COLORS.secondary,
-      }}
-    >
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-          title: 'Dashboard',
-          tabBarIcon: ({ focused }) => {
-            const { Text } = require('react-native');
-            return <Text style={{ fontSize: focused ? 24 : 20 }}>📊</Text>;
-          },
-        }}
-      />
-      <Tabs.Screen
-        name="jobs"
-        options={{
-          title: 'Job Requests',
-          tabBarIcon: ({ focused }) => {
-            const { Text } = require('react-native');
-            return <Text style={{ fontSize: focused ? 24 : 20 }}>📋</Text>;
-          },
-        }}
-      />
-      <Tabs.Screen
-        name="earnings"
-        options={{
-          title: 'Earnings',
-          tabBarIcon: ({ focused }) => {
-            const { Text } = require('react-native');
-            return <Text style={{ fontSize: focused ? 24 : 20 }}>💰</Text>;
-          },
-        }}
-      />
+    <Tabs screenOptions={{ headerShown: false, tabBarStyle: styles.tabBar, tabBarShowLabel: false }}>
+      <Tabs.Screen name="dashboard" options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📊" label="Home" focused={focused} /> }} />
+      <Tabs.Screen name="jobs" options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📋" label="Jobs" focused={focused} /> }} />
+      <Tabs.Screen name="earnings" options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="💰" label="Earnings" focused={focused} /> }} />
+      <Tabs.Screen name="settings" options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="⚙️" label="Settings" focused={focused} /> }} />
+      <Tabs.Screen name="active-job" options={{ href: null }} />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: { backgroundColor: '#1a1a2e', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', height: 64, paddingBottom: 8, paddingTop: 8, elevation: 8 },
+  tabItem: { alignItems: 'center', justifyContent: 'center', gap: 2 },
+  tabEmoji: { fontSize: 22, opacity: 0.4 },
+  tabEmojiActive: { opacity: 1 },
+  tabLabel: { fontSize: 10, color: 'rgba(255,255,255,0.4)', fontWeight: '500' },
+  tabLabelActive: { color: '#fff', fontWeight: '700' },
+});

@@ -1,29 +1,46 @@
+/**
+ * app/(shared)/become-worker.tsx
+ * Worker registration — writes directly to Firestore (no Supabase/Vercel needed)
+ */
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, Linking, Image, ActivityIndicator } from 'react-native';
+import {
+  View, Text, TouchableOpacity, StyleSheet, ScrollView,
+  TextInput, Alert, Linking, ActivityIndicator,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
-import { COLORS, LEGAL_URLS, SERVICE_CATEGORIES } from '../../src/constants';
-import { callApi } from '../../src/services/api';
+import firestore from '@react-native-firebase/firestore';
+import { auth, db } from '../../src/services/firebase';
+import { COLORS, LEGAL_URLS, SERVICE_CATEGORIES, COLLECTIONS, WORKER_STATUS } from '../../src/constants';
 import { useAuthStore } from '../../src/store/authStore';
-import { uploadWorkerPhoto } from '../../src/services/supabase';
+
+function generateWorkerNumber(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let r = 'WRK-';
+  for (let i = 0; i < 6; i++) r += chars[Math.floor(Math.random() * chars.length)];
+  return r;
+}
 
 export default function BecomeWorkerScreen() {
   const router = useRouter();
+  const { userProfile, setWorkerProfile } = useAuthStore();
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState('');
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState('');
   const [hourlyRate, setHourlyRate] = useState('');
   const [experience, setExperience] = useState('');
+  const [name, setName] = useState(userProfile?.name || '');
+  const [phone, setPhone] = useState(userProfile?.phone || '');
+  const [email, setEmail] = useState(userProfile?.email || '');
+  const [address, setAddress] = useState(userProfile?.address || '');
+  const [resumeText, setResumeText] = useState('');
   const [workerTerms, setWorkerTerms] = useState(false);
-  const [photoBase64, setPhotoBase64] = useState<string | null>(null);
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   function addSkill() {
     const s = skillInput.trim();
-    if (s && !skills.includes(s)) {
+    if (s && !skills.includes(s) && skills.length < 10) {
       setSkills([...skills, s]);
       setSkillInput('');
     }
@@ -33,177 +50,246 @@ export default function BecomeWorkerScreen() {
     setSkills(skills.filter((s) => s !== sk));
   }
 
-  async function pickImage() {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert('Permission Denied', 'We need access to your photos to upload a profile picture.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-      base64: true,
-    });
-
-    if (!result.canceled && result.assets && result.assets[0]) {
-      setPhotoUri(result.assets[0].uri);
-      setPhotoBase64(result.assets[0].base64 || null);
-    }
-  }
-
-  const [loading, setLoading] = useState(false);
-
   async function handleSubmit() {
-    if (!photoBase64) {
-      Alert.alert('Photo Required', 'Please select a profile photo to complete registration.');
+    if (!workerTerms) {
+      Alert.alert('Required', 'Please agree to Worker Terms & Conditions.');
       return;
     }
-    
+    if (!name.trim() || !phone.trim() || !address.trim()) {
+      Alert.alert('Required', 'Name, Phone and Address are required.');
+      return;
+    }
+
     setLoading(true);
-    setUploading(true);
     try {
-      // 1. Upload photo to Supabase
-      const fileName = `profile_${Date.now()}.jpg`;
-      const uploadedUrl = await uploadWorkerPhoto(photoBase64, fileName);
-      
-      // 2. Register worker with Vercel API
-      await callApi('registerWorker', {
+      const user = auth().currentUser;
+      if (!user) throw new Error('Not authenticated');
+
+      const workerData = {
+        uid: user.uid,
+        workerNumber: generateWorkerNumber(),
+        name: name.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+        address: address.trim(),
         category,
         skills,
         hourlyRate: Number(hourlyRate),
-        experience,
-        profileUrl: uploadedUrl,
+        experience: experience.trim(),
+        resumeText: resumeText.trim(),
+        verificationStatus: WORKER_STATUS.PENDING,
+        isOnline: false,
+        stats: {
+          completedJobs: 0,
+          averageRating: 0,
+          ratingCount: 0,
+          totalEarnings: 0,
+        },
+        createdAt: firestore.Timestamp.now(),
+        updatedAt: firestore.Timestamp.now(),
+      };
+
+      // Write to Firestore directly
+      await db.collection(COLLECTIONS.WORKERS).doc(user.uid).set(workerData, { merge: true });
+      await db.collection(COLLECTIONS.USERS).doc(user.uid).update({
+        hasWorkerProfile: true,
+        updatedAt: firestore.Timestamp.now(),
       });
-      
+
+      // Update local store
+      setWorkerProfile({
+        ...workerData,
+        createdAt: undefined,
+        updatedAt: undefined,
+      } as any);
+
       Alert.alert(
-        'Registration Submitted',
-        'Your worker application has been submitted for review. You will be notified once verified (usually 1-3 business days).',
+        '🎉 Application Submitted!',
+        'Aapko call or mail ke madhyam se interview ke liye bulaya jayega. Jab hamare dwara aapka interview ho jayega tab hi admin aapki ID activate karega.\n\nKripya interview mein jaruri documents (jaise Resume, Education documents, Aadhaar Card, PAN card etc) sath layein.',
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to submit application');
+      console.error('[BecomeWorker]', err);
+      Alert.alert('Error', err.message || 'Failed to submit. Please try again.');
     } finally {
       setLoading(false);
-      setUploading(false);
     }
   }
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.back}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Offer Services</Text>
-        <Text style={styles.step}>Step {step}/3</Text>
+        <Text style={styles.headerTitle}>Become a Worker</Text>
+        <Text style={styles.stepIndicator}>Step {step}/3</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll}>
+      {/* Progress */}
+      <View style={styles.progressBar}>
+        <View style={[styles.progressFill, { width: `${(step / 3) * 100}%` }]} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+
+        {/* ——— Step 1: Category ——— */}
         {step === 1 && (
           <View>
-            <Text style={styles.sectionTitle}>What service do you offer?</Text>
+            <Text style={styles.stepTitle}>What service do you offer?</Text>
+            <Text style={styles.stepDesc}>Select your primary skill category</Text>
             <View style={styles.catGrid}>
               {SERVICE_CATEGORIES.map((cat) => (
                 <TouchableOpacity
                   key={cat.id}
                   style={[styles.catCard, category === cat.name && styles.catCardSelected]}
                   onPress={() => setCategory(cat.name)}
+                  activeOpacity={0.8}
                 >
-                  <Text style={styles.catIcon}>{cat.icon}</Text>
-                  <Text style={[styles.catName, category === cat.name && styles.catNameSelected]}>{cat.name}</Text>
+                  <View style={[styles.catIconBg, { backgroundColor: cat.color + '25' }]}>
+                    <Text style={styles.catIcon}>{cat.icon}</Text>
+                  </View>
+                  <Text style={[styles.catName, category === cat.name && styles.catNameSelected]} numberOfLines={2}>{cat.name}</Text>
                 </TouchableOpacity>
               ))}
             </View>
             <TouchableOpacity
-              style={[styles.nextBtn, !category && styles.btnDisabled]}
+              style={[styles.btn, !category && styles.btnDisabled]}
               disabled={!category}
               onPress={() => setStep(2)}
             >
-              <Text style={styles.nextBtnText}>Next →</Text>
+              <Text style={styles.btnText}>Next →</Text>
             </TouchableOpacity>
           </View>
         )}
 
+        {/* ——— Step 2: Details & Rate ——— */}
         {step === 2 && (
           <View>
-            <Text style={styles.sectionTitle}>Your Skills in {category}</Text>
-            <Text style={styles.sectionDesc}>Add all skills you can offer. Customers will search by skill.</Text>
-            <View style={styles.skillInputRow}>
+            <View style={styles.selectedBadge}>
+              <Text style={styles.selectedBadgeText}>{SERVICE_CATEGORIES.find(c => c.name === category)?.icon} {category}</Text>
+            </View>
+            <Text style={styles.stepTitle}>Your Details</Text>
+
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput style={styles.textInput} placeholder="Enter full name" value={name} onChangeText={setName} />
+
+            <Text style={styles.label}>Mobile Number</Text>
+            <TextInput style={styles.textInput} placeholder="Mobile Number" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
+
+            <Text style={styles.label}>Email ID (Optional)</Text>
+            <TextInput style={styles.textInput} placeholder="Email address" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
+
+            <Text style={styles.label}>Address</Text>
+            <TextInput style={[styles.textInput, { height: 60, textAlignVertical: 'top' }]} placeholder="Full Address" multiline value={address} onChangeText={setAddress} />
+
+            <Text style={[styles.label, { marginTop: 8 }]}>Skills (add up to 10)</Text>
+            <View style={styles.skillRow}>
               <TextInput
                 style={styles.skillInput}
-                placeholder="e.g. Fan Installation, Wiring..."
+                placeholder="e.g. AC Repair, Wiring..."
+                placeholderTextColor={COLORS.textMuted}
                 value={skillInput}
                 onChangeText={setSkillInput}
                 onSubmitEditing={addSkill}
+                returnKeyType="done"
               />
-              <TouchableOpacity style={styles.addSkillBtn} onPress={addSkill}>
-                <Text style={styles.addSkillBtnText}>Add</Text>
+              <TouchableOpacity style={styles.addBtn} onPress={addSkill}>
+                <Text style={styles.addBtnText}>Add</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.skillsWrap}>
+            <View style={styles.chipsWrap}>
               {skills.map((sk) => (
-                <TouchableOpacity key={sk} style={styles.skillChip} onPress={() => removeSkill(sk)}>
-                  <Text style={styles.skillChipText}>{sk} ✕</Text>
+                <TouchableOpacity key={sk} style={styles.chip} onPress={() => removeSkill(sk)}>
+                  <Text style={styles.chipText}>{sk} ✕</Text>
                 </TouchableOpacity>
               ))}
             </View>
-            {skills.length === 0 && <Text style={styles.skillHint}>Add at least one skill to continue</Text>}
+            {skills.length === 0 && <Text style={styles.hint}>Add at least 1 skill to continue</Text>}
 
-            <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Hourly Rate (₹)</Text>
+            <Text style={[styles.label, { marginTop: 16 }]}>Hourly Rate (₹)</Text>
             <TextInput
               style={styles.textInput}
               placeholder="e.g. 200"
+              placeholderTextColor={COLORS.textMuted}
               keyboardType="number-pad"
               value={hourlyRate}
               onChangeText={setHourlyRate}
             />
 
-            <TouchableOpacity
-              style={[styles.nextBtn, (skills.length === 0 || !hourlyRate) && styles.btnDisabled]}
-              disabled={skills.length === 0 || !hourlyRate}
-              onPress={() => setStep(3)}
-            >
-              <Text style={styles.nextBtnText}>Next →</Text>
-            </TouchableOpacity>
+            <Text style={styles.label}>Experience</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="e.g. 3 years as an electrician"
+              placeholderTextColor={COLORS.textMuted}
+              value={experience}
+              onChangeText={setExperience}
+            />
+
+            <Text style={styles.label}>Resume / About Yourself</Text>
+            <TextInput
+              style={[styles.textInput, { height: 100, textAlignVertical: 'top' }]}
+              placeholder="Paste your resume details or tell us about yourself..."
+              placeholderTextColor={COLORS.textMuted}
+              multiline
+              value={resumeText}
+              onChangeText={setResumeText}
+              maxLength={500}
+            />
+
+            <View style={styles.rowBtns}>
+              <TouchableOpacity style={styles.outlineBtn} onPress={() => setStep(1)}>
+                <Text style={styles.outlineBtnText}>← Back</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnFlex, (skills.length === 0 || !hourlyRate || !name || !phone || !address) && styles.btnDisabled]}
+                disabled={skills.length === 0 || !hourlyRate || !name || !phone || !address}
+                onPress={() => setStep(3)}
+              >
+                <Text style={styles.btnText}>Next →</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
+        {/* ——— Step 3: Review & Submit ——— */}
         {step === 3 && (
           <View>
-            <Text style={styles.sectionTitle}>Upload Profile Photo</Text>
-            <Text style={styles.sectionDesc}>A clear profile photo is required for customer verification.</Text>
-            
-            <View style={styles.photoContainer}>
-              {photoUri ? (
-                <Image source={{ uri: photoUri }} style={styles.previewImage} />
-              ) : (
-                <View style={styles.photoPlaceholder}>
-                  <Text style={styles.placeholderText}>No photo selected</Text>
-                </View>
-              )}
-              <TouchableOpacity style={styles.uploadBtn} onPress={pickImage}>
-                <Text style={styles.uploadBtnText}>{photoUri ? 'Change Photo' : 'Select Photo'}</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.stepTitle}>Review & Submit</Text>
 
-            <View style={styles.infoCard}>
+            <View style={styles.reviewCard}>
+              <Text style={styles.reviewLabel}>Category</Text>
+              <Text style={styles.reviewValue}>{category}</Text>
+            </View>
+            <View style={styles.reviewCard}>
+              <Text style={styles.reviewLabel}>Skills</Text>
+              <Text style={styles.reviewValue}>{skills.join(', ')}</Text>
+            </View>
+            <View style={styles.reviewCard}>
+              <Text style={styles.reviewLabel}>Hourly Rate</Text>
+              <Text style={styles.reviewValue}>₹{hourlyRate}/hour</Text>
+            </View>
+            {experience ? (
+              <View style={styles.reviewCard}>
+                <Text style={styles.reviewLabel}>Experience</Text>
+                <Text style={styles.reviewValue}>{experience}</Text>
+              </View>
+            ) : null}
+
+            <View style={styles.infoBox}>
               <Text style={styles.infoTitle}>📋 What happens next</Text>
-              <Text style={styles.infoText}>1. Our team reviews your application</Text>
-              <Text style={styles.infoText}>2. Document verification (Aadhaar required)</Text>
-              <Text style={styles.infoText}>3. You get notified when verified (1-3 days)</Text>
+              <Text style={styles.infoItem}>1. Our team reviews your application</Text>
+              <Text style={styles.infoItem}>2. Aadhaar / ID verification (via support)</Text>
+              <Text style={styles.infoItem}>3. Activated within 1-3 business days</Text>
+              <Text style={styles.infoItem}>4. You start receiving job requests!</Text>
             </View>
 
-            <TouchableOpacity
-              style={styles.checkRow}
-              onPress={() => setWorkerTerms(!workerTerms)}
-            >
+            <TouchableOpacity style={styles.termsRow} onPress={() => setWorkerTerms(!workerTerms)}>
               <View style={[styles.checkbox, workerTerms && styles.checked]}>
                 {workerTerms && <Text style={styles.checkMark}>✓</Text>}
               </View>
-              <Text style={styles.checkLabel}>
+              <Text style={styles.termsText}>
                 I agree to the{' '}
                 <Text style={styles.link} onPress={() => Linking.openURL(LEGAL_URLS.workerTerms)}>
                   Worker Terms & Conditions
@@ -211,19 +297,22 @@ export default function BecomeWorkerScreen() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.nextBtn, (!workerTerms || !photoUri || loading) && styles.btnDisabled]}
-              disabled={!workerTerms || !photoUri || loading}
-              onPress={handleSubmit}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.nextBtnText}>Submit Application</Text>
-              )}
-            </TouchableOpacity>
+            <View style={styles.rowBtns}>
+              <TouchableOpacity style={styles.outlineBtn} onPress={() => setStep(2)}>
+                <Text style={styles.outlineBtnText}>← Back</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnFlex, (!workerTerms || loading) && styles.btnDisabled]}
+                disabled={!workerTerms || loading}
+                onPress={handleSubmit}
+              >
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Submit Application</Text>}
+              </TouchableOpacity>
+            </View>
           </View>
         )}
+
+        <View style={{ height: 32 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -231,44 +320,51 @@ export default function BecomeWorkerScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.white },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  back: { color: COLORS.primary, fontWeight: '600', fontSize: 15 },
-  title: { fontSize: 17, fontWeight: '700', color: COLORS.text },
-  step: { fontSize: 13, color: COLORS.textMuted },
-  scroll: { padding: 20, paddingBottom: 40 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: 6 },
-  sectionDesc: { fontSize: 13, color: COLORS.textMuted, marginBottom: 14 },
-  catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
-  catCard: { width: '47%', padding: 12, borderRadius: 12, borderWidth: 1.5, borderColor: COLORS.border, alignItems: 'center' },
-  catCardSelected: { borderColor: COLORS.primary, backgroundColor: COLORS.primary + '10' },
-  catIcon: { fontSize: 24, marginBottom: 4 },
-  catName: { fontSize: 12, fontWeight: '600', color: COLORS.text, textAlign: 'center' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  back: { color: COLORS.primary, fontWeight: '600', fontSize: 15, minWidth: 60 },
+  headerTitle: { fontSize: 17, fontWeight: '700', color: COLORS.text },
+  stepIndicator: { fontSize: 13, color: COLORS.textMuted, minWidth: 60, textAlign: 'right' },
+  progressBar: { height: 3, backgroundColor: COLORS.border },
+  progressFill: { height: 3, backgroundColor: COLORS.primary },
+  scroll: { padding: 20, paddingBottom: 48 },
+  stepTitle: { fontSize: 22, fontWeight: '800', color: COLORS.text, marginBottom: 4, marginTop: 8 },
+  stepDesc: { fontSize: 14, color: COLORS.textMuted, marginBottom: 20 },
+  catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
+  catCard: { width: '30%', alignItems: 'center', padding: 12, borderRadius: 14, borderWidth: 1.5, borderColor: COLORS.border },
+  catCardSelected: { borderColor: COLORS.primary, backgroundColor: COLORS.primary + '08' },
+  catIconBg: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  catIcon: { fontSize: 24 },
+  catName: { fontSize: 11, fontWeight: '600', color: COLORS.text, textAlign: 'center', lineHeight: 14 },
   catNameSelected: { color: COLORS.primary },
-  skillInputRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  skillInput: { flex: 1, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
-  addSkillBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 16, borderRadius: 10, justifyContent: 'center' },
-  addSkillBtnText: { color: '#fff', fontWeight: '700' },
-  skillsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 6 },
-  skillChip: { backgroundColor: COLORS.primary + '15', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: COLORS.primary },
-  skillChipText: { color: COLORS.primary, fontSize: 13, fontWeight: '600' },
-  skillHint: { fontSize: 12, color: COLORS.textMuted, marginBottom: 12 },
-  textInput: { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, marginBottom: 20 },
-  nextBtn: { backgroundColor: COLORS.primary, paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginTop: 8 },
+  selectedBadge: { backgroundColor: COLORS.primary + '15', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, alignSelf: 'flex-start', marginBottom: 16 },
+  selectedBadgeText: { color: COLORS.primary, fontWeight: '700', fontSize: 14 },
+  label: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginBottom: 8 },
+  skillRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  skillInput: { flex: 1, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: COLORS.text },
+  addBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 16, borderRadius: 10, justifyContent: 'center' },
+  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 4 },
+  chip: { backgroundColor: COLORS.primary + '15', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: COLORS.primary },
+  chipText: { color: COLORS.primary, fontSize: 13, fontWeight: '600' },
+  hint: { fontSize: 12, color: COLORS.textMuted, marginBottom: 12 },
+  textInput: { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: COLORS.text, marginBottom: 16 },
+  rowBtns: { flexDirection: 'row', gap: 12, marginTop: 8 },
+  btn: { backgroundColor: COLORS.primary, paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
+  btnFlex: { flex: 2 },
   btnDisabled: { backgroundColor: COLORS.border },
-  nextBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  photoContainer: { alignItems: 'center', marginVertical: 20 },
-  photoPlaceholder: { width: 120, height: 120, borderRadius: 60, backgroundColor: COLORS.background, borderWidth: 1.5, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  placeholderText: { fontSize: 12, color: COLORS.textMuted },
-  previewImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 14 },
-  uploadBtn: { backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
-  uploadBtnText: { color: COLORS.primary, fontWeight: '600', fontSize: 13 },
-  infoCard: { backgroundColor: COLORS.background, borderRadius: 14, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: COLORS.border, marginTop: 10 },
-  infoTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text, marginBottom: 10 },
-  infoText: { fontSize: 13, color: COLORS.textMuted, marginBottom: 6 },
-  checkRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 20 },
+  btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  outlineBtn: { flex: 1, borderWidth: 1.5, borderColor: COLORS.border, paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
+  outlineBtnText: { color: COLORS.text, fontWeight: '600', fontSize: 15 },
+  reviewCard: { backgroundColor: COLORS.background, borderRadius: 10, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: COLORS.border },
+  reviewLabel: { fontSize: 11, fontWeight: '700', color: COLORS.textMuted, textTransform: 'uppercase', marginBottom: 4 },
+  reviewValue: { fontSize: 15, color: COLORS.text, fontWeight: '500' },
+  infoBox: { backgroundColor: '#f0fdf4', borderRadius: 14, padding: 16, marginVertical: 16, borderWidth: 1, borderColor: '#86efac' },
+  infoTitle: { fontSize: 14, fontWeight: '700', color: '#166534', marginBottom: 8 },
+  infoItem: { fontSize: 13, color: '#166534', marginBottom: 4, lineHeight: 18 },
+  termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 20 },
   checkbox: { width: 22, height: 22, borderWidth: 2, borderColor: COLORS.border, borderRadius: 6, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   checked: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   checkMark: { color: '#fff', fontSize: 13, fontWeight: '800' },
-  checkLabel: { flex: 1, fontSize: 14, color: COLORS.text, lineHeight: 20 },
+  termsText: { flex: 1, fontSize: 14, color: COLORS.text, lineHeight: 20 },
   link: { color: COLORS.primary, textDecorationLine: 'underline' },
 });

@@ -1,17 +1,17 @@
-﻿/**
+/**
  * app/(customer)/_layout.tsx
- * Customer Mode bottom tab navigator
- * NO "Become a Worker" tab here — it ONLY lives in Profile > Settings
+ * Customer section with Bottom Tab Navigator
  */
 import { Tabs } from 'expo-router';
+import { View, Text, StyleSheet } from 'react-native';
 import { COLORS } from '../../src/constants';
 
-function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
-  const { Text } = require('react-native');
+function TabIcon({ emoji, label, focused }: { emoji: string; label: string; focused: boolean }) {
   return (
-    <Text style={{ fontSize: focused ? 24 : 20, opacity: focused ? 1 : 0.6 }}>
-      {emoji}
-    </Text>
+    <View style={styles.tabItem}>
+      <Text style={[styles.tabEmoji, focused && styles.tabEmojiActive]}>{emoji}</Text>
+      <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>{label}</Text>
+    </View>
   );
 }
 
@@ -20,40 +20,73 @@ export default function CustomerLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
-        tabBarStyle: {
-          backgroundColor: COLORS.white,
-          borderTopColor: COLORS.border,
-          borderTopWidth: 1,
-          paddingBottom: 8,
-          height: 64,
-        },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginBottom: 2 },
+        tabBarStyle: styles.tabBar,
+        tabBarShowLabel: false,
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" label="Home" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
-          title: 'Find Worker',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🔍" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🔍" label="Search" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="post-job"
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <View style={[styles.postBtn, focused && styles.postBtnActive]}>
+              <Text style={styles.postBtnText}>＋</Text>
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
         name="jobs"
         options={{
-          title: 'My Jobs',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="💼" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="💼" label="My Jobs" focused={focused} />,
         }}
       />
-      <Tabs.Screen name="worker" options={{ href: null }} />
+      <Tabs.Screen
+        name="job-detail"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    height: 64,
+    paddingBottom: 8,
+    paddingTop: 8,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+  },
+  tabItem: { alignItems: 'center', justifyContent: 'center', gap: 2 },
+  tabEmoji: { fontSize: 22, opacity: 0.45 },
+  tabEmojiActive: { opacity: 1 },
+  tabLabel: { fontSize: 10, color: COLORS.textMuted, fontWeight: '500' },
+  tabLabelActive: { color: COLORS.primary, fontWeight: '700' },
+  postBtn: {
+    width: 46, height: 46, borderRadius: 23,
+    backgroundColor: COLORS.primary + '20',
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: COLORS.primary,
+  },
+  postBtnActive: { backgroundColor: COLORS.primary },
+  postBtnText: { fontSize: 22, color: COLORS.primary, fontWeight: '700', lineHeight: 26 },
+});

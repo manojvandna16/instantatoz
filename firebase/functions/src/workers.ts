@@ -82,9 +82,9 @@ export const registerWorker = onCall(
       const counterDoc = await transaction.get(counterRef);
       let count = 1;
       if (counterDoc.exists) {
-        count = (counterDoc.data()?.currentCount || 0) + 1;
+        count = (counterDoc.data()?.value || 0) + 1;
       }
-      transaction.set(counterRef, { currentCount: count }, { merge: true });
+      transaction.set(counterRef, { value: count }, { merge: true });
 
       const workerNumber = `WRK-${count.toString().padStart(6, '0')}`;
 
@@ -175,8 +175,8 @@ export const updateWorkerOnlineStatus = onCall(
 
     const workerData = workerDoc.data()!;
 
-    // Only ACTIVE/VERIFIED workers can go online
-    if (workerData.verificationStatus !== 'ACTIVE') {
+    // Only APPROVED workers can go online
+    if (workerData.verificationStatus !== 'APPROVED') {
       throw new HttpsError(
         'permission-denied',
         'Only verified workers can go online. Your account is: ' +
@@ -251,8 +251,8 @@ export const getPublicWorkerProfile = onCall(
 
     const data = workerDoc.data()!;
 
-    // Only show ACTIVE workers
-    if (data.verificationStatus !== 'ACTIVE') {
+    // Only show APPROVED workers
+    if (data.verificationStatus !== 'APPROVED') {
       return null;
     }
 

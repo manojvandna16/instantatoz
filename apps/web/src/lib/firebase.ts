@@ -5,10 +5,7 @@
 // Architecture:
 //   Firebase Auth   → OTP / Phone Authentication
 //   Firestore       → Primary database
-//
-//   ⚠️ Storage NOTE: Worker profile images and all file storage
-//   are handled via NestJS backend → Supabase Storage (private bucket).
-//   Do NOT use Firebase Storage for file uploads from this app.
+//   Cloud Functions → Secure server-side operations
 //
 // Environment variables required (add to .env.local):
 //   NEXT_PUBLIC_FIREBASE_API_KEY
@@ -22,6 +19,7 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getFunctions, httpsCallable, type Functions } from 'firebase/functions';
 
 // ---------------------------------------------------------------------------
 // Firebase configuration — values are read from environment variables
@@ -51,6 +49,14 @@ export const auth: Auth = getAuth(app);
 
 /** Cloud Firestore — Primary database */
 export const db: Firestore = getFirestore(app);
+
+/** Cloud Functions — callable server-side operations */
+export const functions: Functions = getFunctions(app);
+
+/** Helper to create a callable function reference */
+export function callableFunction<T = any, R = any>(name: string) {
+  return httpsCallable<T, R>(functions, name);
+}
 
 /** The initialized Firebase app instance */
 export default app;

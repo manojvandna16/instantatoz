@@ -40,7 +40,18 @@ backend/dist/
 *-adminsdk-*.json
 sa-key.json
 service-account.json
+*.service-account.json
+firebase-adminsdk-*.json
+*private_key*.json
 deploy.bat
+
+# -----------------------------------------------
+# Secrets and credentials
+# -----------------------------------------------
+*.pem
+*.key
+*.p12
+*.pfx
 
 
 # -----------------------------------------------

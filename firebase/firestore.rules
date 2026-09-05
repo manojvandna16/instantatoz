@@ -58,13 +58,13 @@ service cloud.firestore {
       
       // Client cannot create a worker directly; must go through Server Action
       allow create: if false; 
-        
+         
       // Workers can update their own profile, but cannot change protected fields
       allow update: if isOwner(workerId)
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
-          ['workerNumber', 'verificationStatus', 'status', 'rating', 'totalJobs', 'completedJobs', 'ratingCount', 'averageRating', 'stats', 'adminId', 'adminEmail', 'consent']
+          ['workerNumber', 'verificationStatus', 'status', 'rating', 'totalJobs', 'completedJobs', 'ratingCount', 'averageRating', 'stats', 'adminId', 'adminEmail', 'consent', 'isOnline', 'liveLocation', 'geohash']
         );
-        
+         
       // Deletion only via admin SDK (Cloud Functions/Server Actions)
       allow delete: if false;
     }

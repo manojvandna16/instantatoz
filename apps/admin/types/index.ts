@@ -1,5 +1,7 @@
 // types/index.ts — All shared TypeScript types for Admin Panel
 
+import type { UserRole, WorkerVerificationStatus, WorkerRuntimeStatus, JobStatus as CoreJobStatus, PaymentStatus as CorePaymentStatus } from '@/packages/types';
+
 // ─── Admin Roles ─────────────────────────────────────────────────────────────
 export type AdminRole =
   | 'SUPER_ADMIN'
@@ -51,22 +53,17 @@ export interface ServiceArea {
 }
 
 // ─── Worker ──────────────────────────────────────────────────────────────────
-export type WorkerStatus =
-  | 'ONLINE'
-  | 'OFFLINE'
-  | 'BUSY'
-  | 'AVAILABLE'
-  | 'ON_JOB'
-  | 'SUSPENDED'
-  | 'BLOCKED'
-  | 'UNKNOWN';
-
 export type WorkerVerificationStatus =
   | 'PENDING'
   | 'APPROVED'
   | 'REJECTED'
-  | 'NEEDS_MORE_INFO'
   | 'SUSPENDED';
+
+export type WorkerRuntimeStatus =
+  | 'ONLINE'
+  | 'OFFLINE'
+  | 'BUSY'
+  | 'ON_JOB';
 
 export interface Worker {
   uid: string;
@@ -80,7 +77,7 @@ export interface Worker {
   registeredLocation: LocationHierarchy;
   currentLocation?: { lat: number; lng: number; updatedAt: string };
   verificationStatus: WorkerVerificationStatus;
-  status: WorkerStatus;
+  runtimeStatus: WorkerRuntimeStatus;
   rating: number;
   totalJobs: number;
   completedJobs: number;
@@ -101,17 +98,13 @@ export interface WorkerDocument {
 
 // ─── Job ─────────────────────────────────────────────────────────────────────
 export type JobStatus =
-  | 'PENDING'
-  | 'SEARCHING'
+  | 'BROADCASTING'
   | 'ACCEPTED'
-  | 'WORKER_ARRIVING'
-  | 'WORKER_ARRIVED'
-  | 'OTP_VERIFIED'
   | 'IN_PROGRESS'
+  | 'AWAITING_PAYMENT'
   | 'COMPLETED'
   | 'CANCELLED'
-  | 'DISPUTED'
-  | 'REFUNDED';
+  | 'DISPUTED';
 
 export interface Job {
   id: string;

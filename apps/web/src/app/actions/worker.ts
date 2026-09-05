@@ -27,8 +27,8 @@ export async function getPublicWorkerProfile(workerId: string): Promise<PublicWo
     const data = workerDoc.data();
     if (!data) return null;
     
-    // Check if worker is verified and active before showing public profile
-    if (data.verificationStatus !== 'ACTIVE') {
+    // Check if worker is approved and active before showing public profile
+    if (data.verificationStatus !== 'APPROVED') {
       return null;
     }
 

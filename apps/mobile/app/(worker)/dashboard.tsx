@@ -1,167 +1,199 @@
-﻿/**
+/**
  * app/(worker)/dashboard.tsx
- * Worker Dashboard — GO ONLINE / GO OFFLINE toggle
- * PHASE 1: UI structure complete. Live GPS wired in Phase 3.
+ * Worker Home — Live Pending Jobs & Online Toggle
  */
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import firestore from '@react-native-firebase/firestore';
 import { useAuthStore } from '../../src/store/authStore';
-import { useModeStore } from '../../src/store/modeStore';
-import { COLORS, WORKER_STATUS } from '../../src/constants';
-import { callApi } from '../../src/services/api';
+import { auth, db } from '../../src/services/firebase';
+import { listenPendingJobs, acceptJob, Job } from '../../src/services/job.service';
+import { COLORS, COLLECTIONS } from '../../src/constants';
 
 export default function WorkerDashboard() {
   const router = useRouter();
-  const { workerProfile } = useAuthStore();
-  const { setMode } = useModeStore();
-  const isOnline = workerProfile?.isOnline || false;
+  const { workerProfile, setWorkerProfile } = useAuthStore();
+  const [pendingJobs, setPendingJobs] = useState<Job[]>([]);
+  const [loadingToggle, setLoadingToggle] = useState(false);
+  const [acceptingJob, setAcceptingJob] = useState<string | null>(null);
 
-  function switchToCustomer() {
-    setMode('customer');
-    router.replace('/(customer)/home');
-  }
+  useEffect(() => {
+    if (!workerProfile?.category || !workerProfile.isOnline) {
+      setPendingJobs([]);
+      return;
+    }
+    const unsubscribe = listenPendingJobs(workerProfile.category, (jobs) => {
+      setPendingJobs(jobs);
+    });
+    return () => unsubscribe();
+  }, [workerProfile?.category, workerProfile?.isOnline]);
 
-  async function handleGoOnline() {
+  async function handleToggleOnline() {
+    if (!workerProfile) return;
+    const newValue = !workerProfile.isOnline;
+    setLoadingToggle(true);
     try {
-      if (!isOnline) {
-        // Going online - need fake location for now until GPS is added in Phase 3
-        const fakeLocation = { latitude: 28.6139, longitude: 77.2090 }; // Delhi
-        await callApi('updateWorkerOnlineStatus', {
-          isOnline: true,
-          location: fakeLocation,
-        });
-        Alert.alert('Online', 'You are now online and visible to customers!');
-      } else {
-        // Going offline
-        await callApi('updateWorkerOnlineStatus', { isOnline: false });
-        Alert.alert('Offline', 'You are now offline.');
-      }
+      const user = auth().currentUser;
+      if (!user) throw new Error('Not authenticated');
+      await db.collection(COLLECTIONS.WORKERS).doc(user.uid).update({ isOnline: newValue, updatedAt: firestore.Timestamp.now() });
+      setWorkerProfile({ ...workerProfile, isOnline: newValue });
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to update status');
+      Alert.alert('Error', err.message);
+    } finally {
+      setLoadingToggle(false);
     }
   }
 
-  if (!workerProfile || workerProfile.verificationStatus !== WORKER_STATUS.ACTIVE) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.center}>
-          <Text style={styles.noAccessIcon}>⏳</Text>
-          <Text style={styles.noAccessTitle}>Verification Required</Text>
-          <Text style={styles.noAccessDesc}>Worker mode is available after Admin verification.</Text>
-          <TouchableOpacity style={styles.backBtn} onPress={switchToCustomer}>
-            <Text style={styles.backBtnText}>Back to Customer Mode</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
+  async function handleAcceptJob(job: Job) {
+    if (!workerProfile) return;
+    setAcceptingJob(job.id);
+    try {
+      await acceptJob(job.id, workerProfile.uid, workerProfile.name);
+      router.replace({ pathname: '/(worker)/active-job', params: { jobId: job.id } });
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to accept job. Another worker might have accepted it.');
+    } finally {
+      setAcceptingJob(null);
+    }
   }
 
+  if (!workerProfile) return null;
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#1a1a2e' }]}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Worker Dashboard</Text>
-          <Text style={styles.headerWrkId}>{workerProfile.workerNumber}</Text>
-        </View>
-        <TouchableOpacity style={styles.switchBtn} onPress={switchToCustomer}>
-          <Text style={styles.switchBtnText}>👤 Customer</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Online Status */}
-      <View style={styles.statusCard}>
-        <View style={[styles.statusDot, isOnline ? styles.dotOnline : styles.dotOffline]} />
-        <Text style={styles.statusText}>{isOnline ? 'You are ONLINE' : 'You are OFFLINE'}</Text>
-      </View>
-
-      {/* GO ONLINE / GO OFFLINE Toggle */}
-      <View style={styles.toggleWrap}>
-        <TouchableOpacity
-          style={[styles.toggleBtn, isOnline ? styles.goOfflineBtn : styles.goOnlineBtn]}
-          onPress={handleGoOnline}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.toggleBtnText}>{isOnline ? '🔴  GO OFFLINE' : '🟢  GO ONLINE'}</Text>
-          <Text style={styles.toggleBtnSub}>
-            {isOnline ? 'Stop receiving job requests' : 'Start receiving job requests'}
-          </Text>
-        </TouchableOpacity>
-        <Text style={styles.locationNote}>
-          📍 Your live GPS location will be used for job matching when Online
-        </Text>
-      </View>
-
-      {/* Stats */}
-      <View style={styles.statsRow}>
-        {[
-          { label: 'Today\'s Earnings', value: '₹0', icon: '💰' },
-          { label: 'Jobs Today', value: '0', icon: '💼' },
-          { label: 'Rating', value: workerProfile.stats.averageRating > 0 ? workerProfile.stats.averageRating.toFixed(1) : '—', icon: '⭐' },
-        ].map((stat) => (
-          <View key={stat.label} style={styles.statCard}>
-            <Text style={styles.statIcon}>{stat.icon}</Text>
-            <Text style={styles.statValue}>{stat.value}</Text>
-            <Text style={styles.statLabel}>{stat.label}</Text>
+          <Text style={styles.greeting}>Hello, {workerProfile.name}</Text>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{workerProfile.category}</Text>
           </View>
-        ))}
+        </View>
+        <TouchableOpacity onPress={() => router.push('/(shared)/profile')}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{workerProfile.name[0]}</Text>
+          </View>
+        </TouchableOpacity>
       </View>
 
-      {/* Skills */}
-      <View style={styles.skillsCard}>
-        <Text style={styles.skillsTitle}>{workerProfile.category}</Text>
-        <View style={styles.skillsRow}>
-          {workerProfile.skills.slice(0, 4).map((skill: string) => (
-            <View key={skill} style={styles.skillChip}>
-              <Text style={styles.skillText}>{skill}</Text>
-            </View>
-          ))}
-          {workerProfile.skills.length > 4 && (
-            <View style={styles.skillChip}>
-              <Text style={styles.skillText}>+{workerProfile.skills.length - 4} more</Text>
-            </View>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* Online Toggle */}
+        <View style={styles.toggleCard}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.toggleTitle}>{workerProfile.isOnline ? 'You are Online' : 'You are Offline'}</Text>
+            <Text style={styles.toggleDesc}>
+              {workerProfile.isOnline ? 'Waiting for new job requests...' : 'Go online to receive jobs'}
+            </Text>
+          </View>
+          {loadingToggle ? (
+            <ActivityIndicator color={COLORS.primary} />
+          ) : (
+            <TouchableOpacity
+              style={[styles.switch, workerProfile.isOnline && styles.switchOn]}
+              onPress={handleToggleOnline}
+            >
+              <View style={[styles.switchKnob, workerProfile.isOnline && styles.switchKnobOn]} />
+            </TouchableOpacity>
           )}
         </View>
-      </View>
+
+        {/* Stats */}
+        <View style={styles.statsRow}>
+          <View style={styles.statBox}>
+            <Text style={styles.statLabel}>Today's Earnings</Text>
+            <Text style={styles.statValue}>₹0</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statLabel}>Jobs Done</Text>
+            <Text style={styles.statValue}>0</Text>
+          </View>
+        </View>
+
+        {/* Pending Jobs */}
+        <Text style={styles.sectionTitle}>New Requests</Text>
+        
+        {!workerProfile.isOnline ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>😴</Text>
+            <Text style={styles.emptyTitle}>You're Offline</Text>
+            <Text style={styles.emptyDesc}>Toggle online to start receiving job requests from nearby customers.</Text>
+          </View>
+        ) : pendingJobs.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>📡</Text>
+            <Text style={styles.emptyTitle}>Searching for jobs...</Text>
+            <Text style={styles.emptyDesc}>Keep this app open. New job requests will appear here automatically.</Text>
+          </View>
+        ) : (
+          pendingJobs.map(job => (
+            <View key={job.id} style={styles.jobCard}>
+              <View style={styles.jobHeader}>
+                <Text style={styles.jobCustomer}>{job.customerName}</Text>
+                <Text style={styles.jobRate}>₹{job.hourlyRate}/hr</Text>
+              </View>
+              <Text style={styles.jobDesc} numberOfLines={2}>{job.description}</Text>
+              <Text style={styles.jobAddress}>📍 {job.address}</Text>
+              
+              <View style={styles.actionRow}>
+                <TouchableOpacity style={styles.declineBtn}>
+                  <Text style={styles.declineText}>Skip</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.acceptBtn}
+                  onPress={() => handleAcceptJob(job)}
+                  disabled={acceptingJob === job.id}
+                >
+                  {acceptingJob === job.id ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.acceptText}>Accept Job</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  noAccessIcon: { fontSize: 64, marginBottom: 16 },
-  noAccessTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 8 },
-  noAccessDesc: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginBottom: 24 },
-  backBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
-  backBtnText: { color: '#fff', fontWeight: '700' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, paddingTop: 8 },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: '#fff' },
-  headerWrkId: { fontSize: 12, color: 'rgba(255,255,255,0.6)', fontFamily: 'monospace', marginTop: 2 },
-  switchBtn: { backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
-  switchBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
-  statusCard: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 20, marginBottom: 20 },
-  statusDot: { width: 10, height: 10, borderRadius: 5 },
-  dotOnline: { backgroundColor: COLORS.success },
-  dotOffline: { backgroundColor: COLORS.textMuted },
-  statusText: { color: 'rgba(255,255,255,0.8)', fontSize: 14 },
-  toggleWrap: { marginHorizontal: 20, marginBottom: 20 },
-  toggleBtn: { borderRadius: 18, paddingVertical: 24, alignItems: 'center', marginBottom: 10 },
-  goOnlineBtn: { backgroundColor: COLORS.secondary },
-  goOfflineBtn: { backgroundColor: COLORS.danger },
-  toggleBtnText: { color: '#fff', fontSize: 22, fontWeight: '800' },
-  toggleBtnSub: { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginTop: 4 },
-  locationNote: { color: 'rgba(255,255,255,0.5)', fontSize: 12, textAlign: 'center' },
-  statsRow: { flexDirection: 'row', gap: 10, marginHorizontal: 20, marginBottom: 16 },
-  statCard: { flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, padding: 14, alignItems: 'center' },
-  statIcon: { fontSize: 20, marginBottom: 4 },
-  statValue: { fontSize: 18, fontWeight: '800', color: '#fff' },
-  statLabel: { fontSize: 10, color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginTop: 2 },
-  skillsCard: { backgroundColor: 'rgba(255,255,255,0.08)', marginHorizontal: 20, borderRadius: 14, padding: 16 },
-  skillsTitle: { color: '#fff', fontWeight: '700', fontSize: 15, marginBottom: 10 },
-  skillsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  skillChip: { backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  skillText: { color: 'rgba(255,255,255,0.9)', fontSize: 12 },
+  container: { flex: 1, backgroundColor: '#111827' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: '#1f2937' },
+  greeting: { fontSize: 20, fontWeight: '700', color: '#fff' },
+  badge: { backgroundColor: COLORS.primary + '30', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start', marginTop: 4 },
+  badgeText: { color: COLORS.primaryLight, fontSize: 11, fontWeight: '700' },
+  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  scroll: { padding: 20, paddingBottom: 40 },
+  toggleCard: { backgroundColor: '#1f2937', borderRadius: 16, padding: 20, flexDirection: 'row', alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: '#374151' },
+  toggleTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  toggleDesc: { fontSize: 13, color: '#9ca3af', marginTop: 2 },
+  switch: { width: 56, height: 32, borderRadius: 16, backgroundColor: '#4b5563', justifyContent: 'center', paddingHorizontal: 4 },
+  switchOn: { backgroundColor: COLORS.success },
+  switchKnob: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff' },
+  switchKnobOn: { alignSelf: 'flex-end' },
+  statsRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+  statBox: { flex: 1, backgroundColor: '#1f2937', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#374151' },
+  statLabel: { fontSize: 13, color: '#9ca3af', marginBottom: 4 },
+  statValue: { fontSize: 20, fontWeight: '700', color: '#fff' },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#fff', marginBottom: 12 },
+  emptyState: { alignItems: 'center', justifyContent: 'center', padding: 40, backgroundColor: '#1f2937', borderRadius: 16, borderWidth: 1, borderColor: '#374151', borderStyle: 'dashed' },
+  emptyIcon: { fontSize: 40, marginBottom: 12 },
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 6 },
+  emptyDesc: { fontSize: 13, color: '#9ca3af', textAlign: 'center', lineHeight: 20 },
+  jobCard: { backgroundColor: '#1f2937', borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#374151' },
+  jobHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  jobCustomer: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  jobRate: { fontSize: 15, fontWeight: '700', color: COLORS.success },
+  jobDesc: { fontSize: 14, color: '#d1d5db', marginBottom: 12, lineHeight: 20 },
+  jobAddress: { fontSize: 13, color: '#9ca3af', marginBottom: 16 },
+  actionRow: { flexDirection: 'row', gap: 12 },
+  declineBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: '#374151', alignItems: 'center' },
+  declineText: { color: '#d1d5db', fontWeight: '600', fontSize: 14 },
+  acceptBtn: { flex: 2, paddingVertical: 12, borderRadius: 10, backgroundColor: COLORS.primary, alignItems: 'center' },
+  acceptText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 });
-

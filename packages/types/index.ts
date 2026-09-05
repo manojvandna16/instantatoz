@@ -13,29 +13,25 @@ export enum UserRole {
   ADMIN = 'ADMIN',
 }
 
-export enum WorkerStatus {
+export enum WorkerVerificationStatus {
   PENDING = 'PENDING',
-  UNDER_REVIEW = 'UNDER_REVIEW',
-  VERIFIED = 'VERIFIED',
+  APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
   SUSPENDED = 'SUSPENDED',
-  BLOCKED = 'BLOCKED',
 }
 
-export enum WorkerAvailability {
+export enum WorkerRuntimeStatus {
   ONLINE = 'ONLINE',
   OFFLINE = 'OFFLINE',
   BUSY = 'BUSY',
+  ON_JOB = 'ON_JOB',
 }
 
 export enum JobStatus {
-  CREATED = 'CREATED',
-  FINDING_WORKERS = 'FINDING_WORKERS',
-  WORKER_ASSIGNED = 'WORKER_ASSIGNED',
-  WORKER_ARRIVING = 'WORKER_ARRIVING',
-  WORKER_ARRIVED = 'WORKER_ARRIVED',
-  OTP_VERIFIED = 'OTP_VERIFIED',
+  BROADCASTING = 'BROADCASTING',
+  ACCEPTED = 'ACCEPTED',
   IN_PROGRESS = 'IN_PROGRESS',
+  AWAITING_PAYMENT = 'AWAITING_PAYMENT',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
   DISPUTED = 'DISPUTED',
@@ -93,8 +89,8 @@ export interface Worker extends User {
 export interface WorkerProfile {
   id: string;
   userId: string;
-  status: WorkerStatus;
-  availability: WorkerAvailability;
+  verificationStatus: WorkerVerificationStatus;
+  runtimeStatus: WorkerRuntimeStatus;
   mainCategoryId: string;
   subcategoryIds: string[];
   skills: string[];

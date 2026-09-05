@@ -45,4 +45,6 @@ export const registerDeviceToken = onCall(
   }
 );
 
+export { sendNotification } from './notifications/send';
+
 

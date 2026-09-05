@@ -1,4 +1,4 @@
-﻿/**
+/**
  * app/(auth)/consent.tsx
  * Shown ONLY for new users — confirms legal consent and creates user profile.
  * Calls Cloud Function createUserProfile securely.
@@ -7,30 +7,43 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Linking, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { auth } from '../../src/services/firebase';
-import { callApi } from '../../src/services/api';
-import { COLORS, LEGAL_URLS, TERMS_VERSION, PRIVACY_VERSION } from '../../src/constants';
+import { auth, db } from '../../src/services/firebase';
+import { COLLECTIONS, COLORS, LEGAL_URLS, TERMS_VERSION, PRIVACY_VERSION } from '../../src/constants';
+import { useAuthStore } from '../../src/store/authStore';
 
 export default function ConsentScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { setUserProfile } = useAuthStore();
 
   async function handleAgree() {
     setLoading(true);
     try {
-      const user = auth.currentUser;
+      const authInstance = auth();
+      const user = authInstance.currentUser;
       if (!user) throw new Error('Not authenticated');
 
-      // Call Vercel API to create user profile
-      await callApi('createUserProfile', {
-        name: user.displayName || '',
+      const profileData = {
+        uid: user.uid,
+        name: user.displayName || 'New User',
+        phone: user.phoneNumber || '',
+        status: 'ACTIVE',
+        activeMode: 'customer',
+        hasWorkerProfile: false,
+        createdAt: new Date().toISOString(),
         consentVersions: {
           termsVersion: TERMS_VERSION,
           privacyVersion: PRIVACY_VERSION,
         },
-      });
+      };
 
-      // Root layout will detect profile and redirect to customer home
+      // Write directly to Firestore
+      await db.collection(COLLECTIONS.USERS).doc(user.uid).set(profileData, { merge: true });
+
+      // Update local store so NavigationGuard knows we have a profile now
+      setUserProfile(profileData as any);
+
+      // Now redirect
       router.replace('/(customer)/home');
     } catch (err: any) {
       console.error('[Consent] Error:', err);

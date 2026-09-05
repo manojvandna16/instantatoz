@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/store/authStore.ts
  * Zustand store for authentication and user/worker profiles
  */
@@ -10,6 +10,8 @@ export interface UserProfile {
   name: string;
   phone: string;
   email?: string;
+  photoUrl?: string;
+  address?: string;
   status: 'ACTIVE' | 'DELETED';
   hasWorkerProfile: boolean;
   activeMode: 'customer' | 'worker';
@@ -20,16 +22,22 @@ export interface WorkerProfile {
   uid: string;
   workerNumber: string;
   name: string;
+  phone?: string;
+  email?: string;
+  address?: string;
   category: string;
   skills: string[];
   hourlyRate: number;
   experience: string;
+  resumeText?: string;
+  bio?: string;
   verificationStatus: string;
   isOnline: boolean;
   stats: {
     completedJobs: number;
     averageRating: number;
     ratingCount: number;
+    totalEarnings?: number;
   };
   adminNotes?: string;
   joinedAt?: unknown;

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/services/api.ts
  * Unified API Client to call Vercel (Next.js) backend instead of Firebase Cloud Functions
  */
@@ -11,7 +11,7 @@ const BASE_URL = __DEV__
   : 'https://instantatoz.vercel.app/api/mobile';
 
 export async function callApi(action: string, data: any = {}) {
-  const user = auth.currentUser;
+  const user = auth().currentUser;
   if (!user) throw new Error('Not authenticated');
 
   const token = await user.getIdToken();

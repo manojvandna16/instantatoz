@@ -115,12 +115,16 @@ export default function WorkerRegisterPage() {
 
       // 3. Create Worker Profile via Server Action Transaction
       const { registerWorkerAction } = await import('@/app/become-a-worker/actions');
+      const categoryVal = formData.get('category') as string || 'General';
+      const hourlyRateVal = Number(formData.get('hourlyRate')) || 150;
       const result = await registerWorkerAction(token, {
         fullName,
         phone,
         email,
         profilePhotoUrl: photoUrl,
+        category: categoryVal,
         skills: skillsStr.split(',').map(s => s.trim()).filter(Boolean),
+        hourlyRate: hourlyRateVal,
         experience,
         location: locationData,
       });

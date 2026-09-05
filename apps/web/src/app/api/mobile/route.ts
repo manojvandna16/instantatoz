@@ -10,7 +10,7 @@ async function verifyToken(req: NextRequest) {
     throw new Error('Unauthorized: Missing or invalid token');
   }
   const token = authHeader.split('Bearer ')[1];
-  return await adminAuth.verifyIdToken(token);
+  return await adminAuth().verifyIdToken(token);
 }
 
 export async function POST(req: NextRequest) {
@@ -22,23 +22,21 @@ export async function POST(req: NextRequest) {
 
     // 1. Create User Profile (Consent)
     if (action === 'createUserProfile') {
-      const userRef = adminDb.collection('users').doc(uid);
+      const userRef = adminDb().collection('users').doc(uid);
       const userSnap = await userRef.get();
       if (userSnap.exists) {
         return NextResponse.json({ success: true, message: 'Profile already exists' });
       }
 
-      let userNumber = '';
-      await adminDb.runTransaction(async (transaction) => {
-        const counterRef = adminDb.collection('counters').doc('users');
-        const counterSnap = await transaction.get(counterRef);
-        let currentCount = 0;
-        if (counterSnap.exists) {
-          currentCount = counterSnap.data()?.count || 0;
-        }
-        const nextCount = currentCount + 1;
-        userNumber = `USR-${nextCount.toString().padStart(6, '0')}`;
-        transaction.set(counterRef, { count: nextCount }, { merge: true });
+      const counterRef = adminDb().collection('counters').doc('users');
+      const counterSnap = await transaction.get(counterRef);
+      let currentCount = 0;
+      if (counterSnap.exists) {
+        currentCount = counterSnap.data()?.value || 0;
+      }
+      const nextCount = currentCount + 1;
+      userNumber = `USR-${nextCount.toString().padStart(6, '0')}`;
+      transaction.set(counterRef, { value: nextCount }, { merge: true });
         transaction.set(userRef, {
           uid,
           userNumber,
@@ -62,25 +60,25 @@ export async function POST(req: NextRequest) {
 
     // 2. Register Worker
     if (action === 'registerWorker') {
-      const userRef = adminDb.collection('users').doc(uid);
-      const workerRef = adminDb.collection('workers').doc(uid);
+      const userRef = adminDb().collection('users').doc(uid);
+      const workerRef = adminDb().collection('workers').doc(uid);
 
       let workerNumber = '';
-      await adminDb.runTransaction(async (transaction) => {
+      await adminDb().runTransaction(async (transaction: any) => {
         const userSnap = await transaction.get(userRef);
         if (!userSnap.exists) throw new Error('User profile not found');
         
         const workerSnap = await transaction.get(workerRef);
         if (workerSnap.exists) throw new Error('Worker profile already exists');
 
-        const counterRef = adminDb.collection('counters').doc('workers');
+        const counterRef = adminDb().collection('counters').doc('workers');
         const counterSnap = await transaction.get(counterRef);
         let currentCount = 0;
-        if (counterSnap.exists) currentCount = counterSnap.data()?.count || 0;
+        if (counterSnap.exists) currentCount = counterSnap.data()?.value || 0;
         const nextCount = currentCount + 1;
         workerNumber = `WRK-${nextCount.toString().padStart(6, '0')}`;
 
-        transaction.set(counterRef, { count: nextCount }, { merge: true });
+        transaction.set(counterRef, { value: nextCount }, { merge: true });
         
         transaction.set(workerRef, {
           uid,
@@ -108,12 +106,12 @@ export async function POST(req: NextRequest) {
     // 3. Update Online Status (Live Location)
     if (action === 'updateWorkerOnlineStatus') {
       const { isOnline, location } = data;
-      const workerRef = adminDb.collection('workers').doc(uid);
+      const workerRef = adminDb().collection('workers').doc(uid);
       const workerSnap = await workerRef.get();
       
       if (!workerSnap.exists) throw new Error('Worker not found');
-      if (workerSnap.data()?.verificationStatus !== 'ACTIVE') {
-        throw new Error('Worker is not ACTIVE');
+      if (workerSnap.data()?.verificationStatus !== 'APPROVED') {
+        throw new Error('Worker is not APPROVED');
       }
 
       if (!isOnline) {

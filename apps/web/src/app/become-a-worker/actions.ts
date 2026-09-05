@@ -49,10 +49,10 @@ export async function registerWorkerAction(idToken: string, data: WorkerRegistra
       const counterDoc = await transaction.get(counterRef);
       let count = 1;
       if (counterDoc.exists) {
-        count = (counterDoc.data()?.currentCount || 0) + 1;
+        count = (counterDoc.data()?.value || 0) + 1;
       }
       
-      transaction.set(counterRef, { currentCount: count }, { merge: true });
+      transaction.set(counterRef, { value: count }, { merge: true });
 
       // 4. Format workerNumber
       const workerNumber = `WRK-${count.toString().padStart(6, '0')}`;

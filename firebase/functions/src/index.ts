@@ -12,4 +12,4 @@ export { getNearbyWorkers } from './geo';
 export { createJobRequest, respondToJobRequest, verifyJobOTP, completeJob, cancelJob } from './jobs';
 export { submitRating } from './ratings';
 export { deleteFullAccount, stopBeingWorker } from './account';
-export { registerDeviceToken } from './notifications';
+export { registerDeviceToken, sendNotification } from './notifications';
