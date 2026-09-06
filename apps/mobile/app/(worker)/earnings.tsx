@@ -39,7 +39,7 @@ export default function EarningsScreen() {
 
         snapshot.docs.forEach((doc) => {
           const data = doc.data() as import('../../src/services/job.service').Job;
-          const job = { id: doc.id, ...data };
+          const job = { ...data, id: doc.id };
           jobs.push(job);
 
           const amount = job.totalAmount || 0;
@@ -47,7 +47,7 @@ export default function EarningsScreen() {
           totalMins += job.totalMinutes || 0;
 
           if (job.completedAt) {
-            const date = job.completedAt.toDate ? job.completedAt.toDate() : new Date(job.completedAt);
+            const date = (job.completedAt as any).toDate ? (job.completedAt as any).toDate() : new Date(job.completedAt as any);
             if (date >= startOfWeek) weekE += amount;
             if (date >= startOfMonth) monthE += amount;
           }
@@ -55,8 +55,8 @@ export default function EarningsScreen() {
 
         // Sort descending by completion date
         jobs.sort((a, b) => {
-          const d1 = a.completedAt?.toDate ? a.completedAt.toDate() : new Date(a.completedAt || 0);
-          const d2 = b.completedAt?.toDate ? b.completedAt.toDate() : new Date(b.completedAt || 0);
+          const d1 = (a.completedAt as any)?.toDate ? (a.completedAt as any).toDate() : new Date((a.completedAt as any) || 0);
+          const d2 = (b.completedAt as any)?.toDate ? (b.completedAt as any).toDate() : new Date((b.completedAt as any) || 0);
           return d2.getTime() - d1.getTime();
         });
 
@@ -71,7 +71,7 @@ export default function EarningsScreen() {
   }, [workerProfile]);
 
   const renderJobItem = ({ item }: { item: any }) => {
-    const dateStr = item.completedAt ? (item.completedAt.toDate ? item.completedAt.toDate() : new Date(item.completedAt)).toLocaleDateString() : 'N/A';
+    const dateStr = item.completedAt ? ((item.completedAt as any).toDate ? (item.completedAt as any).toDate() : new Date(item.completedAt as any)).toLocaleDateString() : 'N/A';
     
     return (
       <View style={styles.jobCard}>

@@ -94,8 +94,11 @@ service cloud.firestore {
       // Only the customer involved can read their payment
       allow read: if isAuth()
         && resource.data.customerId == request.auth.uid;
-      // Payments are created and updated only by server (Cloud Functions)
-      allow write: if false;
+      // Allow customers to create their own payment records after successful job creation
+      allow create: if isAuth()
+        && request.resource.data.customerId == request.auth.uid;
+      // Payments cannot be updated or deleted by clients
+      allow update, delete: if false;
     }
 
     // =========================================================

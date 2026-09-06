@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerDeviceToken = void 0;
+exports.sendNotification = exports.registerDeviceToken = void 0;
 /**
  * notifications.ts � Cloud Function for device token management
  */
@@ -34,4 +34,6 @@ exports.registerDeviceToken = (0, https_1.onCall)({ region: 'asia-south1' }, asy
     }, { merge: true });
     return { success: true };
 });
+var send_1 = require("./notifications/send");
+Object.defineProperty(exports, "sendNotification", { enumerable: true, get: function () { return send_1.sendNotification; } });
 //# sourceMappingURL=notifications.js.map

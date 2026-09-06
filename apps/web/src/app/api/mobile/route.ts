@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
+import { createClient } from '@supabase/supabase-js';
 
 // Helper to verify Firebase Auth Token from Mobile App
 async function verifyToken(req: NextRequest) {
@@ -28,15 +29,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, message: 'Profile already exists' });
       }
 
-      const counterRef = adminDb().collection('counters').doc('users');
-      const counterSnap = await transaction.get(counterRef);
-      let currentCount = 0;
-      if (counterSnap.exists) {
-        currentCount = counterSnap.data()?.value || 0;
-      }
-      const nextCount = currentCount + 1;
-      userNumber = `USR-${nextCount.toString().padStart(6, '0')}`;
-      transaction.set(counterRef, { value: nextCount }, { merge: true });
+      let userNumber = '';
+      await adminDb().runTransaction(async (transaction: any) => {
+        const counterRef = adminDb().collection('counters').doc('users');
+        const counterSnap = await transaction.get(counterRef);
+        let currentCount = 0;
+        if (counterSnap.exists) {
+          currentCount = counterSnap.data()?.value || 0;
+        }
+        const nextCount = currentCount + 1;
+        userNumber = `USR-${nextCount.toString().padStart(6, '0')}`;
+        transaction.set(counterRef, { value: nextCount }, { merge: true });
         transaction.set(userRef, {
           uid,
           userNumber,
@@ -56,6 +59,49 @@ export async function POST(req: NextRequest) {
         });
       });
       return NextResponse.json({ success: true, userNumber });
+    }
+
+    // 1.5 Upload Profile Photo to Supabase
+    if (action === 'uploadProfilePhoto') {
+      const { base64Image } = data;
+      if (!base64Image) throw new Error('Missing base64Image');
+
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      
+      if (!supabaseUrl || !supabaseServiceKey) {
+        throw new Error('Supabase configuration missing on server');
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      const buffer = Buffer.from(base64Image, 'base64');
+      const filePath = `${uid}/profile.jpg`;
+
+      const { data: uploadData, error } = await supabase.storage
+        .from('worker-profile-images')
+        .upload(filePath, buffer, {
+          contentType: 'image/jpeg',
+          upsert: true,
+        });
+
+      if (error) {
+        console.error('Supabase upload error:', error);
+        throw new Error('Failed to upload image to Supabase: ' + error.message);
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('worker-profile-images')
+        .getPublicUrl(filePath);
+
+      const publicUrl = publicUrlData.publicUrl;
+
+      // Update Firestore users collection
+      await adminDb().collection('users').doc(uid).update({
+        profilePhoto: publicUrl,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      return NextResponse.json({ success: true, url: publicUrl });
     }
 
     // 2. Register Worker

@@ -36,6 +36,12 @@
         {
           "locationWhenInUsePermission": "Instantatoz uses your location to show nearby workers."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "The app needs access to your camera so you can take a profile photo."
+        }
       ]
     ],
     "experiments": {

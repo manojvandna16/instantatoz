@@ -3,10 +3,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from './lib/firebase-admin';
 import { hasPermission } from './lib/roles';
+import { AdminRole } from './types';
 
 const SESSION_COOKIE_NAME = 'admin-session';
 
-async function getRequiredPermission(pathname: string): string | null {
+function getRequiredPermission(pathname: string): string | null {
   const segments = pathname.split('/').filter(Boolean);
   if (segments[0] !== 'dashboard') return null;
   if (segments.length < 2) return null;
@@ -53,7 +54,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL('/', request.url));
     }
 
-    const role = (claims.role as string) || 'SUPER_ADMIN';
+    const role = (claims.role as AdminRole) || 'SUPER_ADMIN';
     const requiredPermission = getRequiredPermission(pathname);
     if (requiredPermission && !hasPermission(role, requiredPermission)) {
       return NextResponse.redirect(new URL('/', request.url));

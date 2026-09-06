@@ -2,7 +2,7 @@
  * app/(shared)/become-worker.tsx
  * Worker registration — writes directly to Firestore (no Supabase/Vercel needed)
  */
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
   TextInput, Alert, Linking, ActivityIndicator,
@@ -11,6 +11,8 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import firestore from '@react-native-firebase/firestore';
 import { auth, db } from '../../src/services/firebase';
+import { callApi } from '../../src/services/api';
+import * as ImagePicker from 'expo-image-picker';
 import { COLORS, LEGAL_URLS, SERVICE_CATEGORIES, COLLECTIONS, WORKER_STATUS } from '../../src/constants';
 import { useAuthStore } from '../../src/store/authStore';
 
@@ -37,6 +39,62 @@ export default function BecomeWorkerScreen() {
   const [resumeText, setResumeText] = useState('');
   const [workerTerms, setWorkerTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+
+  // Enforce mandatory profile photo
+  React.useEffect(() => {
+    async function enforceProfilePhoto() {
+      if (userProfile && !userProfile.photoUrl) {
+        setPhotoUploading(true);
+        try {
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Required', 'Camera permission is required to become a worker.');
+            router.back();
+            return;
+          }
+
+          const result = await ImagePicker.launchCameraAsync({
+            cameraType: ImagePicker.CameraType.front,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.5,
+            base64: true,
+          });
+
+          if (result.canceled || !result.assets?.[0]?.base64) {
+            Alert.alert('Required', 'You must capture a profile photo to become a worker.');
+            router.back();
+            return;
+          }
+
+          const user = auth().currentUser;
+          if (!user) throw new Error('Not authenticated');
+
+          const apiResult = await callApi('uploadProfilePhoto', { base64Image: result.assets[0].base64 });
+          await db.collection(COLLECTIONS.USERS).doc(user.uid).update({ photoUrl: apiResult.url, updatedAt: firestore.Timestamp.now() });
+          
+          useAuthStore.getState().setUserProfile({ ...userProfile, photoUrl: apiResult.url });
+        } catch (error: any) {
+          Alert.alert('Error', error.message || 'Failed to upload photo.');
+          router.back();
+        } finally {
+          setPhotoUploading(false);
+        }
+      }
+    }
+    enforceProfilePhoto();
+  }, [userProfile?.photoUrl]);
+
+  if (photoUploading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={{ marginTop: 12, color: COLORS.text, fontWeight: '600' }}>Uploading profile photo...</Text>
+      </View>
+    );
+  }
+
 
   function addSkill() {
     const s = skillInput.trim();
@@ -79,6 +137,7 @@ export default function BecomeWorkerScreen() {
         resumeText: resumeText.trim(),
         verificationStatus: WORKER_STATUS.PENDING,
         isOnline: false,
+        profileUrl: userProfile?.photoUrl || null,
         stats: {
           completedJobs: 0,
           averageRating: 0,

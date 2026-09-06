@@ -1,6 +1,6 @@
 // types/index.ts — All shared TypeScript types for Admin Panel
 
-import type { UserRole, WorkerVerificationStatus, WorkerRuntimeStatus, JobStatus as CoreJobStatus, PaymentStatus as CorePaymentStatus } from '@/packages/types';
+import type { UserRole, JobStatus as CoreJobStatus, PaymentStatus as CorePaymentStatus } from '../../../packages/types';
 
 // ─── Admin Roles ─────────────────────────────────────────────────────────────
 export type AdminRole =

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerDeviceToken = exports.stopBeingWorker = exports.deleteFullAccount = exports.submitRating = exports.cancelJob = exports.completeJob = exports.verifyJobOTP = exports.respondToJobRequest = exports.createJobRequest = exports.getNearbyWorkers = exports.getPublicWorkerProfile = exports.updateWorkerOnlineStatus = exports.registerWorker = exports.createUserProfile = void 0;
+exports.sendNotification = exports.registerDeviceToken = exports.stopBeingWorker = exports.deleteFullAccount = exports.submitRating = exports.cancelJob = exports.completeJob = exports.verifyJobOTP = exports.respondToJobRequest = exports.createJobRequest = exports.getNearbyWorkers = exports.getPublicWorkerProfile = exports.updateWorkerOnlineStatus = exports.registerWorker = exports.createUserProfile = void 0;
 /**
  * Instantatoz Firebase Cloud Functions
  * Mobile backend — all secure operations run here
@@ -29,4 +29,5 @@ Object.defineProperty(exports, "deleteFullAccount", { enumerable: true, get: fun
 Object.defineProperty(exports, "stopBeingWorker", { enumerable: true, get: function () { return account_1.stopBeingWorker; } });
 var notifications_1 = require("./notifications");
 Object.defineProperty(exports, "registerDeviceToken", { enumerable: true, get: function () { return notifications_1.registerDeviceToken; } });
+Object.defineProperty(exports, "sendNotification", { enumerable: true, get: function () { return notifications_1.sendNotification; } });
 //# sourceMappingURL=index.js.map

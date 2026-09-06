@@ -56,22 +56,6 @@ export const sendNotification = onCall(
 
     const response = await messaging.sendEachForMulticast(message);
 
-    // Clean up invalid tokens
-    const invalidTokens: string[] = [];
-    response.responses.forEach((resp, idx) => {
-      if (!resp.success && resp.error?.code === 'UNREGISTERED') {
-        invalidTokens.push(tokens[idx]);
-      }
-    });
-
-    if (invalidTokens.length > 0) {
-      const batch = db.batch();
-      for (const token of invalidTokens) {
-        const docRef = db.collection('users').doc(userId).collection('devices').doc();
-        // We need the doc ID to delete; in production, query by token
-      }
-    }
-
     return {
       success: true,
       sent: response.successCount,

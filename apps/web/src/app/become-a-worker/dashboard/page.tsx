@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Power, MapPin, Loader2, AlertCircle } from 'lucide-react';
 import { geohashForLocation } from 'geofire-common';
 
@@ -122,7 +122,7 @@ export default function WorkerDashboardPage() {
 
     try {
       const { callableFunction } = await import('@/lib/firebase');
-      const updateStatus = callableFunction<{ isOnline: boolean }>('updateWorkerOnlineStatus');
+      const updateStatus = callableFunction<{ isOnline: boolean, lat: number, lng: number }>('updateWorkerOnlineStatus');
       await updateStatus({ isOnline: newState, lat: 0, lng: 0 });
       
       setWorker({ ...worker, isOnline: newState });

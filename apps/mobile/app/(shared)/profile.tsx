@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import firestore from '@react-native-firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
 import { auth, db } from '../../src/services/firebase';
-import { uploadWorkerPhoto } from '../../src/services/supabase';
+import { callApi } from '../../src/services/api';
 import { useAuthStore } from '../../src/store/authStore';
 import { useModeStore } from '../../src/store/modeStore';
 import { signOut } from '../../src/services/auth.service';
@@ -38,22 +38,32 @@ export default function ProfileScreen() {
 
   async function pickImage() {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission required', 'We need camera access to take your profile photo.', [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => Linking.openSettings() }
+        ]);
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        cameraType: ImagePicker.CameraType.front,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.5,
+        base64: true,
       });
 
-      if (!result.canceled && result.assets[0].uri) {
+      if (!result.canceled && result.assets[0].base64) {
         setUploadingPhoto(true);
         const user = auth().currentUser;
         if (!user) throw new Error('Not authenticated');
 
-        const publicUrl = await uploadWorkerPhoto(result.assets[0].uri, `${user.uid}_avatar.jpg`);
+        const apiResult = await callApi('uploadProfilePhoto', { base64Image: result.assets[0].base64 });
         
-        await db.collection(COLLECTIONS.USERS).doc(user.uid).update({ photoUrl: publicUrl, updatedAt: firestore.Timestamp.now() });
-        setUserProfile({ ...userProfile!, photoUrl: publicUrl });
+        await db.collection(COLLECTIONS.USERS).doc(user.uid).update({ photoUrl: apiResult.url, updatedAt: firestore.Timestamp.now() });
+        setUserProfile({ ...userProfile!, photoUrl: apiResult.url });
         Alert.alert('Success', 'Profile photo updated!');
       }
     } catch (error: any) {

@@ -50,9 +50,9 @@ exports.registerWorker = (0, https_1.onCall)({ region: 'asia-south1' }, async (r
         const counterDoc = await transaction.get(counterRef);
         let count = 1;
         if (counterDoc.exists) {
-            count = (((_b = counterDoc.data()) === null || _b === void 0 ? void 0 : _b.currentCount) || 0) + 1;
+            count = (((_b = counterDoc.data()) === null || _b === void 0 ? void 0 : _b.value) || 0) + 1;
         }
-        transaction.set(counterRef, { currentCount: count }, { merge: true });
+        transaction.set(counterRef, { value: count }, { merge: true });
         const workerNumber = `WRK-${count.toString().padStart(6, '0')}`;
         const newWorkerData = {
             id: uid,
@@ -120,8 +120,8 @@ exports.updateWorkerOnlineStatus = (0, https_1.onCall)({ region: 'asia-south1' }
         throw new https_1.HttpsError('not-found', 'Worker profile not found.');
     }
     const workerData = workerDoc.data();
-    // Only ACTIVE/VERIFIED workers can go online
-    if (workerData.verificationStatus !== 'ACTIVE') {
+    // Only APPROVED workers can go online
+    if (workerData.verificationStatus !== 'APPROVED') {
         throw new https_1.HttpsError('permission-denied', 'Only verified workers can go online. Your account is: ' +
             workerData.verificationStatus);
     }
@@ -178,8 +178,8 @@ exports.getPublicWorkerProfile = (0, https_1.onCall)({ region: 'asia-south1' }, 
         return null;
     }
     const data = workerDoc.data();
-    // Only show ACTIVE workers
-    if (data.verificationStatus !== 'ACTIVE') {
+    // Only show APPROVED workers
+    if (data.verificationStatus !== 'APPROVED') {
         return null;
     }
     // Return ONLY safe public fields — never expose private data
