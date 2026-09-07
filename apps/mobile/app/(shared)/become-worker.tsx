@@ -123,9 +123,18 @@ export default function BecomeWorkerScreen() {
       const user = auth().currentUser;
       if (!user) throw new Error('Not authenticated');
 
+      // Call secure backend API to create worker profile and get the workerNumber
+      const apiResult = await callApi('registerWorker', {
+        category,
+        skills,
+        hourlyRate: Number(hourlyRate),
+        experience: experience.trim(),
+        profileUrl: userProfile?.photoUrl || null,
+      });
+
       const workerData = {
         uid: user.uid,
-        workerNumber: generateWorkerNumber(),
+        workerNumber: apiResult.workerNumber,
         name: name.trim(),
         phone: phone.trim(),
         email: email.trim(),
@@ -144,22 +153,17 @@ export default function BecomeWorkerScreen() {
           ratingCount: 0,
           totalEarnings: 0,
         },
-        createdAt: firestore.Timestamp.now(),
-        updatedAt: firestore.Timestamp.now(),
       };
-
-      // Write to Firestore directly
-      await db.collection(COLLECTIONS.WORKERS).doc(user.uid).set(workerData, { merge: true });
-      await db.collection(COLLECTIONS.USERS).doc(user.uid).update({
-        hasWorkerProfile: true,
-        updatedAt: firestore.Timestamp.now(),
-      });
 
       // Update local store
       setWorkerProfile({
         ...workerData,
-        createdAt: undefined,
-        updatedAt: undefined,
+      } as any);
+
+      // also update userProfile locally
+      useAuthStore.getState().setUserProfile({
+        ...userProfile,
+        hasWorkerProfile: true,
       } as any);
 
       Alert.alert(

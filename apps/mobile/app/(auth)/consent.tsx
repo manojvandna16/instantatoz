@@ -9,6 +9,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '../../src/services/firebase';
 import { COLLECTIONS, COLORS, LEGAL_URLS, TERMS_VERSION, PRIVACY_VERSION } from '../../src/constants';
+import { callApi } from '../../src/services/api';
 import { useAuthStore } from '../../src/store/authStore';
 
 export default function ConsentScreen() {
@@ -23,8 +24,17 @@ export default function ConsentScreen() {
       const user = authInstance.currentUser;
       if (!user) throw new Error('Not authenticated');
 
+      const result = await callApi('createUserProfile', {
+        name: user.displayName || 'New User',
+        consentVersions: {
+          termsVersion: TERMS_VERSION,
+          privacyVersion: PRIVACY_VERSION,
+        },
+      });
+
       const profileData = {
         uid: user.uid,
+        userNumber: result.userNumber,
         name: user.displayName || 'New User',
         phone: user.phoneNumber || '',
         status: 'ACTIVE',
@@ -36,9 +46,6 @@ export default function ConsentScreen() {
           privacyVersion: PRIVACY_VERSION,
         },
       };
-
-      // Write directly to Firestore
-      await db.collection(COLLECTIONS.USERS).doc(user.uid).set(profileData, { merge: true });
 
       // Update local store so NavigationGuard knows we have a profile now
       setUserProfile(profileData as any);
