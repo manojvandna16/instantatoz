@@ -73,11 +73,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const token = await cred.user.getIdToken();
-    await fetch('/api/auth/session', {
+    const sessionResponse = await fetch('/api/auth/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token }),
     });
+    if (!sessionResponse.ok) {
+      const data = await sessionResponse.json().catch(() => ({ error: 'Session creation failed' }));
+      throw new Error(data.error || 'Failed to create session');
+    }
   };
 
   const logout = async () => {
