@@ -24,7 +24,7 @@ export async function POST(
     const resolvedParams = await params;
     const workerId = resolvedParams.id;
 
-    if (!['ACTIVE', 'REJECTED', 'MORE_INFO_REQUIRED'].includes(status)) {
+    if (!['APPROVED', 'REJECTED', 'NEEDS_MORE_INFO'].includes(status)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
