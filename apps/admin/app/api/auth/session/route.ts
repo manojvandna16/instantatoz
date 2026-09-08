@@ -16,8 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const decodedToken = await adminAuth().verifyIdToken(token);
-    const claims = decodedToken.claims;
-    if (claims.admin !== true) {
+    if (decodedToken.admin !== true) {
       return NextResponse.json({ success: false, error: 'Not an admin' }, { status: 403 });
     }
 
