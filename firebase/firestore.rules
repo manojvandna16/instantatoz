@@ -22,23 +22,29 @@ service cloud.firestore {
       return field is string && field.size() >= minLen && field.size() <= maxLen;
     }
 
+    // Is the authenticated user an admin?
+    function isAdmin() {
+      return isAuth() && request.auth.token.admin == true;
+    }
+
     // =========================================================
     // counters — ID generation counters (Server-only)
     // =========================================================
     match /counters/{document=**} {
-      allow read, write: if false; // Only accessible via Admin SDK
+      allow read: if isAdmin();
+      allow write: if false; // Only accessible via Admin SDK
     }
 
     // =========================================================
     // users — customer profiles
     // =========================================================
     match /users/{userId} {
-      // Users can read only their own profile
-      allow read: if isOwner(userId);
+      // Users can read only their own profile, Admins can read all
+      allow read: if isAdmin() || isOwner(userId);
       // Client cannot create a user document with a userNumber (must be done server-side)
       allow create: if false; // Only allow creation via Server Action to securely capture consent
-      allow update: if isOwner(userId) 
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userNumber', 'consent', 'status']);
+      allow update: if isAdmin() || (isOwner(userId) 
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userNumber', 'consent', 'status']));
       allow delete: if false;
 
       // devices subcollection — FCM tokens for push notifications
@@ -54,16 +60,18 @@ service cloud.firestore {
     match /workers/{workerId} {
       // Privacy Fix: Only the owner can read their full profile directly from the client.
       // Other users/customers must use a secure Server Action to fetch public worker data.
-      allow read: if isOwner(workerId);
+      // Admins can read all workers.
+      allow read: if isAdmin() || isOwner(workerId);
       
       // Client cannot create a worker directly; must go through Server Action
       allow create: if false; 
          
-      // Workers can update their own profile, but cannot change protected fields
-      allow update: if isOwner(workerId)
+      // Workers can update their own profile, but cannot change protected fields.
+      // Admins can update worker status and details.
+      allow update: if isAdmin() || (isOwner(workerId)
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
           ['workerNumber', 'verificationStatus', 'status', 'rating', 'totalJobs', 'completedJobs', 'ratingCount', 'averageRating', 'stats', 'adminId', 'adminEmail', 'consent', 'isOnline', 'liveLocation', 'geohash']
-        );
+        ));
          
       // Deletion only via admin SDK (Cloud Functions/Server Actions)
       allow delete: if false;
@@ -79,10 +87,10 @@ service cloud.firestore {
       allow create: if isAuth()
         && isValidString(request.resource.data.customerId, 1, 128)
         && request.resource.data.customerId == request.auth.uid;
-      // Only the job creator or assigned worker can update
-      allow update: if isAuth()
+      // Only the job creator or assigned worker can update, or Admin
+      allow update: if isAdmin() || (isAuth()
         && (resource.data.customerId == request.auth.uid
-            || resource.data.workerId == request.auth.uid);
+            || resource.data.workerId == request.auth.uid));
       // Jobs cannot be deleted (soft-delete via status field)
       allow delete: if false;
     }
@@ -91,9 +99,9 @@ service cloud.firestore {
     // payments — payment records
     // =========================================================
     match /payments/{paymentId} {
-      // Only the customer involved can read their payment
-      allow read: if isAuth()
-        && resource.data.customerId == request.auth.uid;
+      // Only the customer involved can read their payment, or Admin
+      allow read: if isAdmin() || (isAuth()
+        && resource.data.customerId == request.auth.uid);
       // Allow customers to create their own payment records after successful job creation
       allow create: if isAuth()
         && request.resource.data.customerId == request.auth.uid;
@@ -105,9 +113,9 @@ service cloud.firestore {
     // payouts — worker payout records
     // =========================================================
     match /payouts/{payoutId} {
-      // Only the worker can read their payout
-      allow read: if isAuth()
-        && resource.data.workerId == request.auth.uid;
+      // Only the worker can read their payout, or Admin
+      allow read: if isAdmin() || (isAuth()
+        && resource.data.workerId == request.auth.uid);
       // Payouts are managed by server only
       allow write: if false;
     }
@@ -131,8 +139,8 @@ service cloud.firestore {
     // =========================================================
     match /contact_forms/{docId} {
       // Contact forms are write-only from the website (server action)
-      // No client-side read access — admin panel only via Admin SDK
-      allow read: if false;
+      // Admins can read
+      allow read: if isAdmin();
       allow write: if false; // Writes go through Server Action → Admin SDK
     }
 
@@ -140,11 +148,12 @@ service cloud.firestore {
     // support_tickets — in-app support requests
     // =========================================================
     match /support_tickets/{ticketId} {
-      allow read: if isAuth()
-        && resource.data.userId == request.auth.uid;
+      allow read: if isAdmin() || (isAuth()
+        && resource.data.userId == request.auth.uid);
       allow create: if isAuth()
         && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if false;
+      allow update: if isAdmin(); // Admin can resolve/update tickets
+      allow delete: if false;
     }
 
     // =========================================================
@@ -152,15 +161,15 @@ service cloud.firestore {
     // =========================================================
     match /categories/{categoryId} {
       allow read: if true;   // Public — needed for app without auth
-      allow write: if false; // Admin SDK only
+      allow write: if isAdmin(); // Admins can manage categories
     }
 
     // =========================================================
     // notifications — per-user notifications
     // =========================================================
     match /notifications/{notificationId} {
-      allow read: if isAuth()
-        && resource.data.userId == request.auth.uid;
+      allow read: if isAdmin() || (isAuth()
+        && resource.data.userId == request.auth.uid);
       allow update: if isAuth()
         && resource.data.userId == request.auth.uid; // Mark as read
       allow create, delete: if false; // Server only
