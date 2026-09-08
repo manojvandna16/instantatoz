@@ -49,12 +49,11 @@ export async function proxy(request: NextRequest) {
 
   try {
     const decoded = await adminAuth().verifySessionCookie(sessionCookie.value, true);
-    const claims = decoded.claims;
-    if (claims.admin !== true) {
+    if (decoded.admin !== true) {
       return NextResponse.redirect(new URL('/', request.url));
     }
 
-    const role = (claims.role as AdminRole) || 'SUPER_ADMIN';
+    const role = (decoded.role as AdminRole) || 'SUPER_ADMIN';
     const requiredPermission = getRequiredPermission(pathname);
     if (requiredPermission && !hasPermission(role, requiredPermission)) {
       return NextResponse.redirect(new URL('/', request.url));
