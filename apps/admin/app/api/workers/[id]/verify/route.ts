@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminDb as db } from '@/lib/firebase-admin';
-import { getAuth } from 'firebase-admin/auth';
+import { adminDb as db, adminAuth } from '@/lib/firebase-admin';
 import { cookies } from 'next/headers';
 
 export async function POST(
@@ -15,7 +14,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const decodedClaims = await getAuth().verifySessionCookie(sessionCookie, true);
+    const decodedClaims = await adminAuth().verifySessionCookie(sessionCookie, true);
     if (!decodedClaims.admin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
