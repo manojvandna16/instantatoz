@@ -27,11 +27,14 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
+    // Map APPROVED -> ACTIVE to match mobile app's expected status enum
+    const firestoreStatus = status === 'APPROVED' ? 'ACTIVE' : status;
+
     const workerRef = db().collection('workers').doc(workerId);
     
     // Update worker document
     await workerRef.update({
-      verificationStatus: status,
+      verificationStatus: firestoreStatus,
       adminNotes: notes || '',
       verifiedByAdminId: decodedClaims.uid,
       verifiedAt: new Date(),
@@ -44,7 +47,7 @@ export async function POST(
       workerId: workerId,
       adminId: decodedClaims.uid,
       previousStatus: 'PENDING',
-      newStatus: status,
+      newStatus: firestoreStatus,
       notes: notes || '',
       timestamp: new Date()
     });
