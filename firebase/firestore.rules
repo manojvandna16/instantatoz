@@ -70,7 +70,7 @@ service cloud.firestore {
       // Admins can update worker status and details.
       allow update: if isAdmin() || (isOwner(workerId)
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
-          ['workerNumber', 'verificationStatus', 'status', 'rating', 'totalJobs', 'completedJobs', 'ratingCount', 'averageRating', 'stats', 'adminId', 'adminEmail', 'consent', 'isOnline', 'liveLocation', 'geohash']
+          ['workerNumber', 'verificationStatus', 'status', 'rating', 'totalJobs', 'completedJobs', 'ratingCount', 'averageRating', 'stats', 'adminId', 'adminEmail', 'consent']
         ));
          
       // Deletion only via admin SDK (Cloud Functions/Server Actions)
