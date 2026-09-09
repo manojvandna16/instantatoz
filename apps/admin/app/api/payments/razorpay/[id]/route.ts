@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
 import { cookies } from 'next/headers';
-import Razorpay from 'razorpay';
 
 export async function GET(
   request: Request,
@@ -25,7 +24,7 @@ export async function GET(
     const paymentId = resolvedParams.id;
 
     // 2. Validate Payment ID (reject mocks)
-    if (!paymentId || paymentId.startsWith('mock_')) {
+    if (!paymentId || paymentId.startsWith('mock_') || paymentId.startsWith('pay_simulated')) {
       return NextResponse.json({ error: 'Invalid or mock payment ID' }, { status: 400 });
     }
 
@@ -33,54 +32,69 @@ export async function GET(
     const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
+    // Log which key is being used (masked for security)
+    console.log('[Razorpay API] Key ID present:', keyId ? `${keyId.slice(0, 14)}...` : 'MISSING');
+    console.log('[Razorpay API] Key Secret present:', !!keySecret);
+
     if (!keyId || !keySecret) {
       console.error('[Razorpay API] Missing Razorpay environment variables.');
       return NextResponse.json({ error: 'Payment gateway configuration is missing on the server' }, { status: 500 });
     }
 
-    // 4. Fetch from Razorpay API
-    const razorpay = new Razorpay({
-      key_id: keyId,
-      key_secret: keySecret,
+    // 4. Fetch from Razorpay REST API directly using fetch()
+    // Using direct REST API instead of SDK to avoid any env var loading issues
+    const credentials = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+    
+    const rzpResponse = await fetch(`https://api.razorpay.com/v1/payments/${paymentId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${credentials}`,
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
     });
 
-    const payment = await razorpay.payments.fetch(paymentId);
+    const data = await rzpResponse.json();
 
-    if (!payment) {
-      return NextResponse.json({ error: 'Payment not found in Razorpay' }, { status: 404 });
+    console.log('[Razorpay API] Razorpay response status:', rzpResponse.status);
+
+    if (!rzpResponse.ok) {
+      console.error('[Razorpay API] Error from Razorpay:', JSON.stringify(data));
+      const errMsg = data?.error?.description || data?.error?.code || 'Failed to fetch payment from Razorpay';
+      return NextResponse.json({ error: errMsg }, { status: rzpResponse.status });
     }
 
     // 5. Return safe/relevant details
     return NextResponse.json({
       success: true,
       data: {
-        id: payment.id,
-        entity: payment.entity,
-        amount: payment.amount,
-        currency: payment.currency,
-        status: payment.status,
-        order_id: payment.order_id,
-        invoice_id: payment.invoice_id,
-        method: payment.method,
-        description: payment.description,
-        bank: payment.bank,
-        wallet: payment.wallet,
-        vpa: payment.vpa,
-        email: payment.email,
-        contact: payment.contact,
-        fee: payment.fee,
-        tax: payment.tax,
-        captured: payment.captured,
-        created_at: payment.created_at,
-        acquirer_data: payment.acquirer_data,
-        card: payment.card,
+        id: data.id,
+        entity: data.entity,
+        amount: data.amount,
+        currency: data.currency,
+        status: data.status,
+        order_id: data.order_id,
+        invoice_id: data.invoice_id,
+        method: data.method,
+        description: data.description,
+        bank: data.bank,
+        wallet: data.wallet,
+        vpa: data.vpa,
+        email: data.email,
+        contact: data.contact,
+        fee: data.fee,
+        tax: data.tax,
+        captured: data.captured,
+        created_at: data.created_at,
+        acquirer_data: data.acquirer_data,
+        card: data.card,
       }
     });
 
   } catch (error: any) {
-    console.error('[Razorpay API] Error fetching payment:', error?.message || error);
+    console.error('[Razorpay API] Unexpected error:', error?.message || String(error));
     return NextResponse.json(
-      { error: 'Failed to fetch payment details from Razorpay' },
+      { error: 'Server error while fetching payment details', detail: error?.message },
       { status: 500 }
     );
   }
