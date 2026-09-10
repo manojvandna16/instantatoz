@@ -189,6 +189,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, isOnline: true });
     }
 
+    // 4. Telemetry: Report App Error
+    if (action === 'reportError') {
+      const { errorMessage, stackTrace, os, appVersion, deviceModel, type = 'ERROR', metadata = {} } = data;
+      await adminDb().collection('app_errors').add({
+        userId: uid,
+        errorMessage: errorMessage || 'Unknown Error',
+        stackTrace: stackTrace || null,
+        os: os || 'unknown',
+        appVersion: appVersion || 'unknown',
+        deviceModel: deviceModel || 'unknown',
+        type,
+        metadata,
+        timestamp: FieldValue.serverTimestamp(),
+        resolved: false
+      });
+      return NextResponse.json({ success: true });
+    }
+
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
   } catch (error: any) {
     console.error('[Mobile API Error]:', error);
