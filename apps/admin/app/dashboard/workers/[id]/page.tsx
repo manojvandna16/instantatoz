@@ -1,14 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { getFirebaseDb } from '@/lib/firebase';
 import { CheckCircle, XCircle, Clock, MapPin, Briefcase, Phone, User, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function WorkerDetailPage({ params }: { params: { id: string } }) {
+export default function WorkerDetailPage() {
   const router = useRouter();
+  const params = useParams();
+  const workerId = params?.id as string;
   const [worker, setWorker] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
@@ -17,9 +19,10 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
 
   useEffect(() => {
     async function fetchWorker() {
+      if (!workerId) return;
       try {
         const db = getFirebaseDb();
-        const docRef = doc(db, 'workers', params.id);
+        const docRef = doc(db, 'workers', workerId);
         const snapshot = await getDoc(docRef);
         if (snapshot.exists()) {
           setWorker({ id: snapshot.id, ...snapshot.data() });
@@ -34,13 +37,13 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
       }
     }
     fetchWorker();
-  }, [params.id]);
+  }, [workerId]);
 
   const handleVerify = async (status: 'ACTIVE' | 'REJECTED' | 'MORE_INFO_REQUIRED') => {
     setVerifying(true);
     setError('');
     try {
-      const res = await fetch(`/api/workers/${params.id}/verify`, {
+      const res = await fetch(`/api/workers/${workerId}/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, notes })
