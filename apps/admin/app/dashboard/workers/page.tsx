@@ -36,9 +36,18 @@ export default function WorkersPage() {
 
   useEffect(() => {
     const db = getFirebaseDb();
-    const q = query(collection(db, 'workers'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, snap => {
-      setWorkers(snap.docs.map(d => ({ uid: d.id, ...d.data() } as Worker)));
+    const unsub = onSnapshot(collection(db, 'workers'), snap => {
+      const data = snap.docs.map(d => ({ uid: d.id, ...d.data() } as Worker));
+      // Client-side sort to avoid missing index errors
+      data.sort((a: any, b: any) => {
+        const timeA = a.createdAt?.seconds || (typeof a.createdAt === 'string' ? new Date(a.createdAt).getTime() : 0);
+        const timeB = b.createdAt?.seconds || (typeof b.createdAt === 'string' ? new Date(b.createdAt).getTime() : 0);
+        return timeB - timeA;
+      });
+      setWorkers(data);
+      setLoading(false);
+    }, (error) => {
+      console.error("Firestore error in workers list:", error);
       setLoading(false);
     });
     return unsub;
@@ -50,7 +59,9 @@ export default function WorkersPage() {
       w.phone?.includes(search) ||
       (w as any).workerNumber?.toLowerCase().includes(search.toLowerCase()) ||
       w.category?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === 'ALL' || w.runtimeStatus === filterStatus;
+    
+    const wStatus = w.status || w.runtimeStatus || 'UNKNOWN';
+    const matchStatus = filterStatus === 'ALL' || wStatus === filterStatus;
     const matchVerification = filterVerification === 'ALL' || w.verificationStatus === filterVerification;
     return matchSearch && matchStatus && matchVerification;
   });
@@ -64,7 +75,7 @@ export default function WorkersPage() {
           <p className="text-sm text-gray-400 mt-0.5">{workers.length} total workers registered</p>
         </div>
         <div className="flex items-center gap-2 text-xs">
-          <span className="bg-green-500/20 text-green-400 px-2.5 py-1 rounded-full">{workers.filter(w => w.runtimeStatus === 'ONLINE' || w.runtimeStatus === 'AVAILABLE' as any).length} Online</span>
+          <span className="bg-green-500/20 text-green-400 px-2.5 py-1 rounded-full">{workers.filter(w => (w.status || w.runtimeStatus) === 'ONLINE' || (w.status || w.runtimeStatus) === 'AVAILABLE' as any).length} Online</span>
           <span className="bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-full">{workers.filter(w => w.verificationStatus === 'PENDING').length} Pending</span>
           <span className="bg-red-500/20 text-red-400 px-2.5 py-1 rounded-full">{workers.filter(w => w.verificationStatus === 'SUSPENDED').length} Suspended</span>
         </div>
@@ -143,8 +154,8 @@ export default function WorkersPage() {
                     {worker.registeredLocation?.district || worker.registeredLocation?.city || '—'}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={clsx('text-xs px-2 py-1 rounded-full border font-medium', STATUS_STYLES[worker.runtimeStatus as string] || STATUS_STYLES.UNKNOWN)}>
-                      {worker.runtimeStatus || 'UNKNOWN'}
+                    <span className={clsx('text-xs px-2 py-1 rounded-full border font-medium', STATUS_STYLES[(worker.status || worker.runtimeStatus) as string] || STATUS_STYLES.UNKNOWN)}>
+                      {worker.status || worker.runtimeStatus || 'UNKNOWN'}
                     </span>
                   </td>
                   <td className="px-4 py-3">
