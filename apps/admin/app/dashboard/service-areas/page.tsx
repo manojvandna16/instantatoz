@@ -33,10 +33,13 @@ export default function ServiceAreasPage() {
       const areaData = snap.docs.map(d => ({ id: d.id, ...d.data() } as ServiceArea));
       setAreas(areaData);
       
-      // Fetch verified workers to compute counts
+      // Fetch all workers to compute counts and avoid index issues
       try {
-        const workersSnap = await getDocs(query(collection(db, 'workers'), where('verificationStatus', '==', 'APPROVED')));
-        const workers = workersSnap.docs.map(d => d.data());
+        const workersSnap = await getDocs(query(collection(db, 'workers')));
+        const workers = workersSnap.docs
+          .map(d => d.data())
+          .filter(w => w.verificationStatus === 'APPROVED');
+          
         
         const counts: Record<string, number> = {};
         areaData.forEach(area => {
