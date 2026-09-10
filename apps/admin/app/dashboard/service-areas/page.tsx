@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, where, getDocs } from 'firebase/firestore';
 import { getFirebaseDb } from '@/lib/firebase';
-import { MapPin, CheckCircle2, Info, Plus, Edit3, Trash2, X, Save } from 'lucide-react';
+import { MapPin, CheckCircle2, Info, Plus, Edit3, Trash2, X, Save, RefreshCw } from 'lucide-react';
 
 interface ServiceArea {
   id: string;
