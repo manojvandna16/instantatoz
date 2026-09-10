@@ -45,3 +45,20 @@ export async function DELETE() {
   response.cookies.delete(SESSION_COOKIE_NAME);
   return response;
 }
+
+export async function GET(request: NextRequest) {
+  const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  if (!sessionCookie) {
+    return NextResponse.json({ success: false, error: 'No session cookie' }, { status: 401 });
+  }
+
+  try {
+    await adminAuth().verifySessionCookie(sessionCookie, true);
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json(
+      { success: false, error: 'Invalid or expired session' },
+      { status: 401 }
+    );
+  }
+}
