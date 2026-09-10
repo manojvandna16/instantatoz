@@ -68,6 +68,7 @@ export interface Worker {
   name: string;
   phone: string;
   email?: string;
+  status?: string;
   category: string;
   subcategory?: string;
   experience?: string;
