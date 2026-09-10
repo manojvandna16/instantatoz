@@ -23,9 +23,12 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
         const snapshot = await getDoc(docRef);
         if (snapshot.exists()) {
           setWorker({ id: snapshot.id, ...snapshot.data() });
+        } else {
+          setError('Worker document does not exist in database.');
         }
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        console.error("Fetch Worker Error:", err);
+        setError(err.message || 'Permission denied or network error');
       } finally {
         setLoading(false);
       }
@@ -67,7 +70,15 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
   }
 
   if (!worker) {
-    return <div className="text-gray-400">Worker not found</div>;
+    return (
+      <div className="text-gray-400">
+        {error ? (
+          <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-lg">
+            {error}
+          </div>
+        ) : 'Worker not found'}
+      </div>
+    );
   }
 
   return (
@@ -130,7 +141,7 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
               <div>
                 <p className="text-sm text-gray-500">Skills</p>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {worker.skills?.map((s: string) => (
+                  {(Array.isArray(worker.skills) ? worker.skills : typeof worker.skills === 'string' ? worker.skills.split(',').map((s: string) => s.trim()) : []).map((s: string) => (
                     <span key={s} className="bg-blue-500/10 text-blue-400 text-xs px-2 py-1 rounded border border-blue-500/20">{s}</span>
                   ))}
                 </div>
