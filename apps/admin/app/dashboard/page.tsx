@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, onSnapshot, query, where, Timestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { getFirebaseDb } from '@/lib/firebase';
 import {
   Users, HardHat, CheckCircle, Clock, Wifi, WifiOff, Briefcase,
@@ -10,6 +10,10 @@ import {
   RefreshCw, MapPin
 } from 'lucide-react';
 import type { DashboardStats } from '@/types';
+import {
+  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 function StatCard({
@@ -61,6 +65,7 @@ export default function DashboardPage() {
   });
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [location] = useState('Uttarkashi District, Uttarakhand');
+  const [revenueData, setRevenueData] = useState<any[]>([]);
 
   useEffect(() => {
     const db = getFirebaseDb();
@@ -78,6 +83,32 @@ export default function DashboardPage() {
       if (val._seconds) return val._seconds * 1000;
       return new Date(val).getTime();
     };
+
+    // Fetch 7-day trend
+    const fetchTrend = async () => {
+      try {
+        const from = new Date();
+        from.setDate(from.getDate() - 7);
+        const res = await fetch(`/api/finance/stats?from=${from.toISOString()}`);
+        if (res.ok) {
+          const json = await res.json();
+          // Map data to short date format for the chart
+          const formattedData = (json.data.revenueTimeSeries || []).map((item: any) => {
+            const dateObj = new Date(item.date);
+            const shortDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return {
+              ...item,
+              shortDate,
+              workerEarnings: item.revenue - item.commission
+            };
+          });
+          setRevenueData(formattedData);
+        }
+      } catch (e) {
+        console.error('Failed to fetch stats', e);
+      }
+    };
+    fetchTrend();
 
     // Users
     unsubscribers.push(onSnapshot(collection(db, 'users'), snap => {
@@ -173,7 +204,45 @@ export default function DashboardPage() {
     return () => unsubscribers.forEach(u => u());
   }, []);
 
-  const now = new Date();
+  // Prepare Chart Data
+  const workerStatusData = [
+    { name: 'Online', value: stats.onlineWorkers, color: '#4ade80' },
+    { name: 'Busy', value: stats.busyWorkers, color: '#60a5fa' },
+    { name: 'Offline', value: stats.offlineWorkers, color: '#9ca3af' },
+    { name: 'Suspended', value: stats.suspendedWorkers, color: '#f87171' },
+  ].filter(d => d.value > 0);
+
+  if (workerStatusData.length === 0) {
+    workerStatusData.push({ name: 'No Workers', value: 1, color: '#374151' });
+  }
+
+  const jobsData = [
+    { name: 'Completed Today', value: stats.completedJobsToday, color: '#4ade80' },
+    { name: 'Cancelled Today', value: stats.cancelledJobsToday, color: '#f87171' },
+    { name: 'Active Now', value: stats.activeJobs, color: '#a78bfa' },
+  ];
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-gray-900 border border-gray-700 p-3 rounded-lg shadow-xl">
+          <p className="text-gray-300 text-sm mb-2 font-medium">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} className="text-sm flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+              <span className="text-gray-400">{entry.name}:</span>
+              <span className="text-white font-bold">
+                {entry.name.includes('evenue') || entry.name.includes('ommission') || entry.name.includes('arning') 
+                  ? `₹${entry.value}` 
+                  : entry.value}
+              </span>
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="space-y-6">
@@ -205,58 +274,119 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Users & Workers */}
-      <div>
-        <SectionHeader title="Users & Workers" icon={Users} />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard label="Total Users" value={stats.totalUsers} icon={Users} color="bg-blue-600/20 text-blue-400" />
-          <StatCard label="Total Workers" value={stats.totalWorkers} icon={HardHat} color="bg-purple-600/20 text-purple-400" />
-          <StatCard label="Verified Workers" value={stats.verifiedWorkers} icon={CheckCircle} color="bg-green-600/20 text-green-400" />
-          <StatCard label="Pending Verification" value={stats.pendingVerification} icon={Clock} color="bg-amber-600/20 text-amber-400" />
+      {/* Primary KPI Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label="Payments Today" value={`₹${stats.todayPayments.toLocaleString('en-IN')}`} icon={CreditCard} color="bg-green-600/20 text-green-400" live />
+        <StatCard label="Commission Today" value={`₹${stats.todayCommission.toLocaleString('en-IN')}`} icon={Percent} color="bg-blue-600/20 text-blue-400" live />
+        <StatCard label="Active Jobs" value={stats.activeJobs} icon={TrendingUp} color="bg-purple-600/20 text-purple-400" live />
+        <StatCard label="Online Workers" value={stats.onlineWorkers} icon={Wifi} color="bg-emerald-600/20 text-emerald-400" live />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Revenue Trend Chart */}
+        <div className="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <SectionHeader title="Revenue Trend (Last 7 Days)" icon={TrendingUp} />
+          {revenueData.length > 0 ? (
+            <div className="h-72 w-full mt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                  <XAxis dataKey="shortDate" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `₹${val}`} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                  <Bar dataKey="workerEarnings" name="Worker Earnings" stackId="a" fill="#3b82f6" radius={[0, 0, 4, 4]} />
+                  <Bar dataKey="commission" name="Platform Commission" stackId="a" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-72 w-full mt-4 flex items-center justify-center border border-dashed border-gray-700 rounded-lg">
+              <p className="text-gray-500 text-sm">Waiting for transaction data...</p>
+            </div>
+          )}
+        </div>
+
+        {/* Worker Status Pie Chart */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col">
+          <SectionHeader title="Worker Distribution" icon={Users} />
+          <div className="flex-1 min-h-[250px] relative mt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={workerStatusData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={5}
+                  dataKey="value"
+                  stroke="none"
+                >
+                  {workerStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Center Text */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-3xl font-bold text-white">{stats.totalWorkers}</span>
+              <span className="text-xs text-gray-500">Total Workers</span>
+            </div>
+          </div>
+          {/* Custom Legend */}
+          <div className="grid grid-cols-2 gap-2 mt-4">
+            {workerStatusData.map(w => (
+              <div key={w.name} className="flex items-center justify-between bg-gray-800/50 rounded-md px-2 py-1.5">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: w.color }} />
+                  <span className="text-xs text-gray-300">{w.name}</span>
+                </div>
+                <span className="text-xs font-bold text-white">{w.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Worker Status */}
-      <div>
-        <SectionHeader title="Worker Status (Real-Time)" icon={Wifi} />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard label="Online / Available" value={stats.onlineWorkers} icon={Wifi} color="bg-green-600/20 text-green-400" live />
-          <StatCard label="Busy / On Job" value={stats.busyWorkers} icon={Briefcase} color="bg-blue-600/20 text-blue-400" live />
-          <StatCard label="Offline" value={stats.offlineWorkers} icon={WifiOff} color="bg-gray-600/20 text-gray-400" live />
-          <StatCard label="Suspended" value={stats.suspendedWorkers} icon={AlertTriangle} color="bg-red-600/20 text-red-400" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Job Status Overview */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <SectionHeader title="Today's Job Status" icon={Briefcase} />
+          <div className="mt-4 space-y-4">
+            {jobsData.map(job => (
+              <div key={job.name}>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span className="text-gray-300">{job.name}</span>
+                  <span className="text-white font-bold">{job.value}</span>
+                </div>
+                <div className="w-full h-2.5 bg-gray-800 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full rounded-full transition-all duration-500" 
+                    style={{ 
+                      backgroundColor: job.color, 
+                      width: `${Math.max(2, (job.value / Math.max(1, stats.activeJobs + stats.completedJobsToday + stats.cancelledJobsToday)) * 100)}%` 
+                    }} 
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Jobs */}
-      <div>
-        <SectionHeader title="Jobs (Real-Time)" icon={Briefcase} />
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          <StatCard label="Active Jobs" value={stats.activeJobs} icon={TrendingUp} color="bg-blue-600/20 text-blue-400" live />
-          <StatCard label="Searching" value={stats.searchingJobs} icon={Search} color="bg-amber-600/20 text-amber-400" live />
-          <StatCard label="In Progress" value={stats.inProgressJobs} icon={PlayCircle} color="bg-purple-600/20 text-purple-400" live />
-          <StatCard label="Completed Today" value={stats.completedJobsToday} icon={CheckSquare} color="bg-green-600/20 text-green-400" />
-          <StatCard label="Cancelled Today" value={stats.cancelledJobsToday} icon={XCircle} color="bg-red-600/20 text-red-400" />
-        </div>
-      </div>
-
-      {/* Finance */}
-      <div>
-        <SectionHeader title="Finance (Today)" icon={CreditCard} />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard label="Payments Today" value={`₹${stats.todayPayments.toLocaleString('en-IN')}`} icon={CreditCard} color="bg-green-600/20 text-green-400" />
-          <StatCard label="Commission Today" value={`₹${stats.todayCommission.toLocaleString('en-IN')}`} icon={Percent} color="bg-blue-600/20 text-blue-400" />
-          <StatCard label="Pending Payouts" value={`₹${stats.pendingPayouts.toLocaleString('en-IN')}`} icon={Wallet} color="bg-amber-600/20 text-amber-400" />
-          <StatCard label="Avg Rating" value={stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'} icon={Star} color="bg-yellow-600/20 text-yellow-400" />
-        </div>
-      </div>
-
-      {/* Support */}
-      <div>
-        <SectionHeader title="Support & Issues" icon={MessageSquareWarning} />
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <StatCard label="Open Complaints" value={stats.openComplaints} icon={MessageSquareWarning} color="bg-orange-600/20 text-orange-400" />
-          <StatCard label="Open Disputes" value={stats.openDisputes} icon={Scale} color="bg-red-600/20 text-red-400" />
-          <StatCard label="Platform Status" value="Operational" icon={CheckCircle} color="bg-green-600/20 text-green-400" sub="All systems normal" />
+        {/* Operational Metrics */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <SectionHeader title="Operational Metrics" icon={CheckCircle} />
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <StatCard label="Pending Payouts" value={`₹${stats.pendingPayouts.toLocaleString('en-IN')}`} icon={Wallet} color="bg-amber-600/20 text-amber-400" />
+            <StatCard label="Avg Rating" value={stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'} icon={Star} color="bg-yellow-600/20 text-yellow-400" />
+            <StatCard label="Open Complaints" value={stats.openComplaints} icon={MessageSquareWarning} color="bg-orange-600/20 text-orange-400" />
+            <StatCard label="Open Disputes" value={stats.openDisputes} icon={Scale} color="bg-red-600/20 text-red-400" />
+          </div>
         </div>
       </div>
 
@@ -267,7 +397,7 @@ export default function DashboardPage() {
           {[
             { label: 'Verify Workers', href: '/dashboard/workers/verification', color: 'bg-blue-600 hover:bg-blue-700' },
             { label: 'Live Operations', href: '/dashboard/live-operations', color: 'bg-purple-600 hover:bg-purple-700' },
-            { label: 'Pending Payouts', href: '/dashboard/payouts', color: 'bg-green-600 hover:bg-green-700' },
+            { label: 'Pending Payouts', href: '/dashboard/payouts', color: 'bg-emerald-600 hover:bg-emerald-700' },
             { label: 'Open Complaints', href: '/dashboard/complaints', color: 'bg-orange-600 hover:bg-orange-700' },
           ].map(link => (
             <a key={link.href} href={link.href}
