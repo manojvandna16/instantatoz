@@ -66,6 +66,19 @@ export default function DashboardPage() {
     const db = getFirebaseDb();
     const unsubscribers: (() => void)[] = [];
 
+    const getMidnight = () => {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return d.getTime();
+    };
+
+    const parseDate = (val: any) => {
+      if (!val) return 0;
+      if (val.toDate) return val.toDate().getTime();
+      if (val._seconds) return val._seconds * 1000;
+      return new Date(val).getTime();
+    };
+
     // Users
     unsubscribers.push(onSnapshot(collection(db, 'users'), snap => {
       setStats(s => ({ ...s, totalUsers: snap.size }));
@@ -91,16 +104,54 @@ export default function DashboardPage() {
     // Jobs
     unsubscribers.push(onSnapshot(collection(db, 'jobs'), snap => {
       const jobs = snap.docs.map(d => d.data());
-      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const midnight = getMidnight();
       setStats(s => ({
         ...s,
         activeJobs: jobs.filter(j => !['COMPLETED', 'CANCELLED', 'REFUNDED'].includes(j.status)).length,
         searchingJobs: jobs.filter(j => j.status === 'SEARCHING').length,
         inProgressJobs: jobs.filter(j => j.status === 'IN_PROGRESS').length,
-        completedJobsToday: jobs.filter(j => j.status === 'COMPLETED' && j.completedAt?.toDate?.() >= today).length,
-        cancelledJobsToday: jobs.filter(j => j.status === 'CANCELLED' && j.cancelledAt?.toDate?.() >= today).length,
+        completedJobsToday: jobs.filter(j => j.status === 'COMPLETED' && parseDate(j.completedAt) >= midnight).length,
+        cancelledJobsToday: jobs.filter(j => j.status === 'CANCELLED' && parseDate(j.cancelledAt || j.updatedAt) >= midnight).length,
       }));
       setLastUpdated(new Date());
+    }));
+
+    // Payments
+    unsubscribers.push(onSnapshot(collection(db, 'payments'), snap => {
+      const payments = snap.docs.map(d => d.data());
+      const midnight = getMidnight();
+      let todayPayments = 0;
+      let todayCommission = 0;
+
+      payments.forEach(p => {
+        if (p.status === 'COMPLETED' && parseDate(p.createdAt) >= midnight) {
+          todayPayments += Number(p.amount || 0);
+          todayCommission += Number(p.platformFee || 0);
+        }
+      });
+
+      setStats(s => ({ ...s, todayPayments, todayCommission }));
+    }));
+
+    // Payouts
+    unsubscribers.push(onSnapshot(collection(db, 'payouts'), snap => {
+      const payouts = snap.docs.map(d => d.data());
+      let pendingPayouts = 0;
+      payouts.forEach(p => {
+        if (p.status === 'PENDING') {
+          pendingPayouts += Number(p.amount || 0);
+        }
+      });
+      setStats(s => ({ ...s, pendingPayouts }));
+    }));
+
+    // Ratings
+    unsubscribers.push(onSnapshot(collection(db, 'ratings'), snap => {
+      const ratings = snap.docs.map(d => d.data());
+      let total = 0;
+      ratings.forEach(r => { total += Number(r.rating || 0); });
+      const averageRating = ratings.length > 0 ? total / ratings.length : 0;
+      setStats(s => ({ ...s, averageRating }));
     }));
 
     // Complaints
