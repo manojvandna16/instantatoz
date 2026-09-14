@@ -5,21 +5,27 @@
 import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import { auth } from './firebase';
 import { COLLECTIONS, JOB_STATUS } from '../constants';
+import { callApi } from './api';
 
 export interface Job {
   id: string;
   jobNumber: string;
   customerId: string;
-  customerName: string;
-  workerIdAssigned?: string;
+  customerName?: string;
+  cancelReason?: string;
+  workerIdAssigned?: string; // Legacy
   workerName?: string;
   category: string;
+  requiredWorkers?: number;
+  assignedWorkerIds?: string[];
   description: string;
   address: string;
   location: { latitude: number; longitude: number };
   hourlyRate: number;
   estimatedHours?: number; // Added for prepaid amount calculation
   status: string; // From JOB_STATUS
+  refundedAllocations?: number; // Number of allocations resolved via refund
+  refundedAmount?: number; // Total amount refunded
   otp?: string; // Start OTP
   endOtp?: string; // End OTP for job completion
   paymentStatus?: 'PENDING' | 'PAID' | 'PAID_TO_PLATFORM';
@@ -30,12 +36,29 @@ export interface Job {
   customerReview?: string;
   workerRating?: number;
   workerReview?: string;
-  cancelReason?: string;
   createdAt: FirebaseFirestoreTypes.Timestamp;
   updatedAt: FirebaseFirestoreTypes.Timestamp;
   startedAt?: FirebaseFirestoreTypes.Timestamp;
   completedAt?: FirebaseFirestoreTypes.Timestamp;
   cancelledAt?: FirebaseFirestoreTypes.Timestamp;
+}
+
+export interface JobAssignment {
+  id?: string;
+  jobId: string;
+  workerId: string;
+  grossWorkerAmount: number;
+  commissionAmount: number;
+  netWorkerAmount: number;
+  status: 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'WORKER_NO_SHOW' | 'ABANDONED';
+  resolutionType?: 'REPLACED' | 'REFUNDED' | 'DISPUTED';
+  refundStatus?: 'NONE' | 'PROCESSING' | 'REFUNDED' | 'FAILED';
+  startOtp?: string;
+  endOtp?: string;
+  startedAt?: FirebaseFirestoreTypes.Timestamp;
+  completedAt?: FirebaseFirestoreTypes.Timestamp;
+  resolvedAt?: FirebaseFirestoreTypes.Timestamp;
+  abandonedAt?: FirebaseFirestoreTypes.Timestamp;
 }
 
 const db = firestore();
@@ -62,72 +85,32 @@ export async function createJob(params: {
   longitude: number;
   hourlyRate: number;
   estimatedHours: number;
+  requiredWorkers: number;
   paymentId: string;
 }): Promise<string> {
-  const otp = generateOTP();
-  const endOtp = generateOTP();
-  const ref = db.collection(COLLECTIONS.JOBS).doc();
-  const now = firestore.Timestamp.now();
-  const totalAmount = params.hourlyRate * params.estimatedHours;
-
-  await ref.set({
-    jobNumber: generateJobNumber(),
-    status: JOB_STATUS.FINDING_WORKERS,
-    customerId: params.customerId,
-    customerName: params.customerName,
-    workerIdAssigned: null,
-    workerName: null,
-    category: params.category,
-    description: params.description,
-    address: params.address,
-    location: new firestore.GeoPoint(params.latitude, params.longitude),
-    hourlyRate: params.hourlyRate,
-    estimatedHours: params.estimatedHours,
-    paymentId: params.paymentId,
-    otp,
-    endOtp,
-    startedAt: null,
-    completedAt: null,
-    totalMinutes: null,
-    totalAmount,
-    paymentStatus: 'PAID_TO_PLATFORM',
-    customerRating: null,
-    workerRating: null,
-    createdAt: now,
-    updatedAt: now,
-  });
-
-  if (params.paymentId) {
-    const paymentRef = db.collection(COLLECTIONS.PAYMENTS).doc(params.paymentId);
-    const commissionRate = 0.10; // 10% platform commission
-    const commission = Math.round(totalAmount * commissionRate);
-    const workerPayable = totalAmount - commission;
-
-    await paymentRef.set({
-      jobId: ref.id,
-      customerId: params.customerId,
-      grossAmount: totalAmount,
-      platformCommission: commission,
-      workerPayable: workerPayable,
-      gatewayName: 'RAZORPAY',
-      gatewayTransactionId: params.paymentId,
-      status: 'CAPTURED',
-      createdAt: now,
-      updatedAt: now,
-    });
-  }
-
-  return ref.id;
+  const result = await callApi('createJobDirect', params);
+  return result.jobId;
 }
 
 /** Worker accepts a job */
 export async function acceptJob(jobId: string, workerId: string, workerName: string): Promise<void> {
-  await db.collection(COLLECTIONS.JOBS).doc(jobId).update({
-    status: JOB_STATUS.WORKER_ASSIGNED,
-    workerIdAssigned: workerId,
-    workerName,
-    updatedAt: firestore.Timestamp.now(),
-  });
+  await callApi('acceptJob', { jobId, workerId, workerName });
+}
+
+export async function cancelWorkerAssignment(jobId: string, workerId: string, reason: string): Promise<void> {
+  await callApi('cancelWorkerAssignment', { jobId, workerId, reason });
+}
+
+export async function reportNoShow(jobId: string, workerId: string): Promise<void> {
+  await callApi('reportNoShow', { jobId, workerId });
+}
+
+export async function resolveCancellation(jobId: string, workerId: string, action: 'replace' | 'refund'): Promise<void> {
+  await callApi('resolveCancellation', { jobId, workerId, action });
+}
+
+export async function reportMidJobAbandonment(jobId: string, workerId: string): Promise<void> {
+  await callApi('reportMidJobAbandonment', { jobId, workerId });
 }
 
 /** Worker marks they have arrived */
@@ -140,57 +123,27 @@ export async function workerArrived(jobId: string): Promise<void> {
 
 /** Worker verifies OTP entered by customer — starts the job timer */
 export async function verifyJobOTP(jobId: string, enteredOtp: string): Promise<boolean> {
-  const snap = await db.collection(COLLECTIONS.JOBS).doc(jobId).get();
-  const data = snap.data();
-  if (!data || data.otp !== enteredOtp.trim()) return false;
-
-  const now = firestore.Timestamp.now();
-  await db.collection(COLLECTIONS.JOBS).doc(jobId).update({
-    status: JOB_STATUS.IN_PROGRESS,
-    startedAt: now,
-    updatedAt: now,
-  });
-  return true;
+  try {
+    await callApi('verifyStartOtp', { jobId, otp: enteredOtp.trim() });
+    return true;
+  } catch (error: any) {
+    console.error('verifyJobOTP error:', error);
+    return false;
+  }
 }
 
 /** End a job — worker provides endOtp from customer */
 export async function endJob(jobId: string, enteredEndOtp: string): Promise<{ totalMinutes: number; totalAmount: number }> {
-  const snap = await db.collection(COLLECTIONS.JOBS).doc(jobId).get();
-  const data = snap.data();
-  if (!data) throw new Error('Job not found');
-
-  if (data.endOtp && data.endOtp !== enteredEndOtp.trim()) {
-    throw new Error('Invalid End OTP');
+  try {
+    const result = await callApi('verifyEndOtp', { jobId, endOtp: enteredEndOtp.trim() });
+    return { 
+      totalMinutes: result.totalMinutes, 
+      totalAmount: result.totalAmount 
+    };
+  } catch (error: any) {
+    console.error('endJob error:', error);
+    throw new Error(error.message || 'Failed to end job');
   }
-
-  const startedAt = data.startedAt as FirebaseFirestoreTypes.Timestamp;
-  const now = firestore.Timestamp.now();
-  const elapsedMs = now.toMillis() - startedAt.toMillis();
-  const totalMinutes = Math.ceil(elapsedMs / 60000);
-  
-  // Total amount was already calculated based on estimatedHours in createJob,
-  // but if we need to adjust based on actual time, we could do it here.
-  // For now, keeping the prepaid amount.
-  const totalAmount = data.totalAmount || 0;
-
-  await db.collection(COLLECTIONS.JOBS).doc(jobId).update({
-    status: JOB_STATUS.COMPLETED,
-    completedAt: now,
-    totalMinutes,
-    updatedAt: now,
-  });
-
-  // Update worker stats
-  if (data.workerIdAssigned) {
-    const workerRef = db.collection(COLLECTIONS.WORKERS).doc(data.workerIdAssigned);
-    await workerRef.update({
-      'stats.completedJobs': firestore.FieldValue.increment(1),
-      // Worker's commission is typically added, for now we add full amount to their stats
-      'stats.totalEarnings': firestore.FieldValue.increment(totalAmount),
-    });
-  }
-
-  return { totalMinutes, totalAmount };
 }
 
 /** Cancel a job */
@@ -322,4 +275,14 @@ export function formatTimer(seconds: number): string {
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
   return [h, m, s].map((v) => String(v).padStart(2, '0')).join(':');
+}
+
+export async function getUnresolvedAssignments(jobId: string): Promise<any[]> {
+  const snap = await db.collection('job_assignments')
+    .where('jobId', '==', jobId)
+    .where('status', 'in', ['CANCELLED', 'WORKER_NO_SHOW'])
+    .get();
+  return snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter((a: any) => !a.resolutionType);
 }

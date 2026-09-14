@@ -5,10 +5,8 @@
 import { auth } from './firebase';
 
 // Update this to your deployed Vercel domain in production
-// For Android Emulator targeting localhost, use 10.0.2.2
-const BASE_URL = __DEV__ 
-  ? 'http://10.0.2.2:3000/api/mobile' 
-  : 'https://instantatoz.vercel.app/api/mobile';
+// For physical Android testing, always use the live Vercel backend.
+const BASE_URL = 'https://instantatoz.vercel.app/api/mobile';
 
 export async function callApi(action: string, data: any = {}) {
   const user = auth().currentUser;

@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
 import { COLORS, JOB_STATUS, COLLECTIONS } from '../../src/constants';
 import { db } from '../../src/services/firebase';
+import { cancelWorkerAssignment, verifyJobOTP, Job } from '../../src/services/job.service';
 
 export default function ActiveJobScreen() {
   const router = useRouter();
@@ -65,20 +66,36 @@ export default function ActiveJobScreen() {
     }
   };
 
+  const handleCancelAssignment = async () => {
+    Alert.alert('Cancel Assignment', 'Are you sure you want to cancel this job? This will negatively impact your rating.', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Yes, Cancel', style: 'destructive',
+        onPress: async () => {
+          try {
+            await cancelWorkerAssignment(activeJob.id, workerProfile!.uid, 'Worker cancelled via app');
+            Alert.alert('Cancelled', 'Your assignment has been cancelled.');
+            setActiveJob(null);
+            router.back();
+          } catch (err: any) {
+            Alert.alert('Error', err.message);
+          }
+        },
+      },
+    ]);
+  };
+
   const handleVerifyOTP = async () => {
     if (otpInput.length !== 4) {
       Alert.alert('Error', 'Please enter a 4-digit OTP');
       return;
     }
-    if (otpInput !== activeJob.otp?.toString()) {
-      Alert.alert('Error', 'Wrong OTP, ask customer');
-      return;
-    }
+    
+    // In multi-worker jobs, startJob API is required to validate OTP 
+    // and transition assignments to IN_PROGRESS safely.
     try {
-      await db.collection(COLLECTIONS.JOBS).doc(activeJob.id).update({
-        status: JOB_STATUS.IN_PROGRESS,
-        startedAt: new Date(),
-      });
+      const isValid = await verifyJobOTP(activeJob.id, otpInput);
+      if (!isValid) throw new Error('Invalid OTP');
     } catch (err: any) {
       Alert.alert('Error', err.message);
     }
@@ -163,26 +180,50 @@ export default function ActiveJobScreen() {
         </View>
 
         {(activeJob.status === JOB_STATUS.WORKER_ASSIGNED || activeJob.status === JOB_STATUS.WORKER_ARRIVING) && (
-          <TouchableOpacity style={styles.actionBtn} onPress={handleArrived}>
-            <Text style={styles.actionBtnText}>I Have Arrived</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity style={styles.actionBtn} onPress={handleArrived}>
+              <Text style={styles.actionBtnText}>I Have Arrived</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={{ ...styles.actionBtn, backgroundColor: COLORS.danger, marginTop: 12 }} onPress={handleCancelAssignment}>
+              <Text style={styles.actionBtnText}>Cancel Assignment</Text>
+            </TouchableOpacity>
+          </>
         )}
 
         {activeJob.status === JOB_STATUS.WORKER_ARRIVED && (
           <View style={styles.otpContainer}>
-            <Text style={styles.otpLabel}>Enter OTP from Customer</Text>
-            <TextInput
-              style={styles.otpInput}
-              keyboardType="number-pad"
-              maxLength={4}
-              value={otpInput}
-              onChangeText={setOtpInput}
-              placeholder="0000"
-              placeholderTextColor="rgba(255,255,255,0.3)"
-            />
-            <TouchableOpacity style={styles.actionBtn} onPress={handleVerifyOTP}>
-              <Text style={styles.actionBtnText}>Verify OTP & Start Work</Text>
-            </TouchableOpacity>
+            {/* If job is multi-worker and not FULLY_ASSIGNED yet */}
+            {activeJob.requiredWorkers > 1 && (activeJob.assignedWorkerIds?.length + (activeJob.refundedAllocations || 0) < activeJob.requiredWorkers) ? (
+              <View style={{ padding: 16, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12 }}>
+                <Text style={styles.title}>Waiting for other workers</Text>
+                <Text style={styles.infoText}>This job requires {activeJob.requiredWorkers} workers. Work cannot start until all slots are filled or resolved.</Text>
+                
+                <TouchableOpacity style={{ ...styles.actionBtn, backgroundColor: COLORS.danger, marginTop: 12 }} onPress={handleCancelAssignment}>
+                  <Text style={styles.actionBtnText}>Cancel Assignment</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.otpLabel}>Enter OTP from Customer</Text>
+                <TextInput
+                  style={styles.otpInput}
+                  keyboardType="number-pad"
+                  maxLength={4}
+                  value={otpInput}
+                  onChangeText={setOtpInput}
+                  placeholder="0000"
+                  placeholderTextColor="rgba(255,255,255,0.3)"
+                />
+                <TouchableOpacity style={styles.actionBtn} onPress={handleVerifyOTP}>
+                  <Text style={styles.actionBtnText}>Verify OTP & Start Work</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={{ ...styles.actionBtn, backgroundColor: 'transparent', borderColor: COLORS.danger, borderWidth: 1, marginTop: 12 }} onPress={handleCancelAssignment}>
+                  <Text style={{ ...styles.actionBtnText, color: COLORS.danger }}>Cancel Assignment</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         )}
 

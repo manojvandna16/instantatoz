@@ -25,7 +25,11 @@ export default function WorkerDashboard() {
       return;
     }
     const unsubscribe = listenPendingJobs(workerProfile.category, (jobs) => {
-      setPendingJobs(jobs);
+      // Filter out jobs this worker has already accepted or jobs that are actually mock jobs
+      const genuineActiveJobs = jobs.filter(
+        j => !j.assignedWorkerIds?.includes(workerProfile.uid) && !j.customerName?.includes('Mock')
+      );
+      setPendingJobs(genuineActiveJobs);
     });
     return () => unsubscribe();
   }, [workerProfile?.category, workerProfile?.isOnline]);
@@ -60,6 +64,18 @@ export default function WorkerDashboard() {
   }
 
   if (!workerProfile) return null;
+
+  if (workerProfile.verificationStatus !== 'ACTIVE' && workerProfile.verificationStatus !== 'VERIFIED') {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>⏳</Text>
+          <Text style={styles.emptyTitle}>Pending Approval</Text>
+          <Text style={styles.emptyDesc}>Your worker profile is currently {workerProfile.verificationStatus.toLowerCase()}. You will be able to receive jobs once activated by admin.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -136,9 +152,18 @@ export default function WorkerDashboard() {
               <Text style={styles.jobDesc} numberOfLines={2}>{job.description}</Text>
               <Text style={styles.jobAddress}>📍 {job.address}</Text>
               
+              {/* Show remaining slots if multi-worker */}
+              {job.requiredWorkers && job.requiredWorkers > 1 && (
+                <View style={{ marginTop: 8, padding: 8, backgroundColor: COLORS.background, borderRadius: 6 }}>
+                  <Text style={{ fontSize: 13, color: COLORS.primary, fontWeight: '500' }}>
+                    {job.requiredWorkers - (job.assignedWorkerIds?.length || 0)} slot(s) remaining ({job.assignedWorkerIds?.length || 0}/{job.requiredWorkers} assigned)
+                  </Text>
+                </View>
+              )}
+
               <View style={styles.actionRow}>
                 <TouchableOpacity style={styles.declineBtn}>
-                  <Text style={styles.declineText}>Skip</Text>
+                  <Text style={styles.declineText}>Decline</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.acceptBtn}
@@ -146,9 +171,9 @@ export default function WorkerDashboard() {
                   disabled={acceptingJob === job.id}
                 >
                   {acceptingJob === job.id ? (
-                    <ActivityIndicator color="#fff" />
+                    <ActivityIndicator color={COLORS.white} />
                   ) : (
-                    <Text style={styles.acceptText}>Accept Job</Text>
+                    <Text style={styles.acceptText}>Accept</Text>
                   )}
                 </TouchableOpacity>
               </View>

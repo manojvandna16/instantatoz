@@ -9,11 +9,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import firestore from '@react-native-firebase/firestore';
 import { auth, db } from '../../src/services/firebase';
 import { useAuthStore } from '../../src/store/authStore';
+import { useModeStore } from '../../src/store/modeStore';
 import { COLLECTIONS, COLORS } from '../../src/constants';
 
 export default function WorkerSettingsScreen() {
   const router = useRouter();
-  const { workerProfile, setWorkerProfile } = useAuthStore();
+  const { workerProfile, setWorkerProfile, userProfile, setUserProfile } = useAuthStore();
+  const { setMode } = useModeStore();
   
   const [hourlyRate, setHourlyRate] = useState(workerProfile?.hourlyRate?.toString() || '');
   const [bio, setBio] = useState(workerProfile?.bio || '');
@@ -54,6 +56,21 @@ export default function WorkerSettingsScreen() {
       Alert.alert('Error', err.message || 'Failed to update profile.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleSwitchToCustomer() {
+    if (!userProfile) return;
+    try {
+      const user = auth().currentUser;
+      if (!user) throw new Error('Not authenticated');
+      
+      await db.collection(COLLECTIONS.USERS).doc(userProfile.uid).update({ activeMode: 'customer', updatedAt: firestore.Timestamp.now() });
+      setUserProfile({ ...userProfile, activeMode: 'customer' });
+      setMode('customer');
+      router.replace('/(shared)/profile' as any);
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to switch mode.');
     }
   }
 
@@ -124,6 +141,10 @@ export default function WorkerSettingsScreen() {
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>Save Changes</Text>}
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.switchBtn} onPress={handleSwitchToCustomer}>
+          <Text style={styles.switchBtnText}>Switch to Customer Mode</Text>
+        </TouchableOpacity>
+
         {/* Stats */}
         <View style={styles.statsCard}>
           <Text style={styles.statsTitle}>Performance Stats</Text>
@@ -165,8 +186,10 @@ const styles = StyleSheet.create({
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 24 },
   chip: { backgroundColor: COLORS.primary + '15', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: COLORS.primary },
   chipText: { color: COLORS.primary, fontSize: 13, fontWeight: '600' },
-  saveBtn: { backgroundColor: COLORS.primary, paddingVertical: 16, borderRadius: 12, alignItems: 'center', marginBottom: 32 },
+  saveBtn: { backgroundColor: COLORS.primary, paddingVertical: 16, borderRadius: 12, alignItems: 'center', marginBottom: 16 },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  switchBtn: { backgroundColor: COLORS.white, paddingVertical: 16, borderRadius: 12, alignItems: 'center', marginBottom: 32, borderWidth: 1.5, borderColor: COLORS.primary },
+  switchBtnText: { color: COLORS.primary, fontSize: 16, fontWeight: '700' },
   statsCard: { backgroundColor: '#f8fafc', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' },
   statsTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
   statRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#e2e8f0' },

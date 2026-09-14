@@ -1,88 +1,68 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
-import { COLORS, JOB_STATUS, COLLECTIONS } from '../../src/constants';
-import { db } from '../../src/services/firebase';
+import { COLORS } from '../../src/constants';
+import { callApi } from '../../src/services/api';
 
 export default function EarningsScreen() {
   const router = useRouter();
   const { workerProfile } = useAuthStore();
-  const [completedJobs, setCompletedJobs] = useState<any[]>([]);
   
-  const [lifetimeEarnings, setLifetimeEarnings] = useState(0);
-  const [thisWeekEarnings, setThisWeekEarnings] = useState(0);
-  const [thisMonthEarnings, setThisMonthEarnings] = useState(0);
-  const [avgDuration, setAvgDuration] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [walletData, setWalletData] = useState<any>(null);
 
   useEffect(() => {
+    fetchWallet();
+  }, [workerProfile?.uid]);
+
+  const fetchWallet = async () => {
     if (!workerProfile?.uid) return;
+    try {
+      setLoading(true);
+      const data = await callApi('getWorkerWallet', {});
+      setWalletData(data);
+    } catch (err) {
+      console.error('Failed to load wallet:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const unsub = db
-      .collection(COLLECTIONS.JOBS)
-      .where('workerIdAssigned', '==', workerProfile.uid)
-      .where('status', '==', JOB_STATUS.COMPLETED)
-      .onSnapshot((snapshot) => {
-        const jobs: any[] = [];
-        let totalE = 0;
-        let weekE = 0;
-        let monthE = 0;
-        let totalMins = 0;
+  const requestWithdrawal = async () => {
+    if (!walletData?.currentBalance || walletData.currentBalance <= 0) {
+      alert('No available balance to withdraw.');
+      return;
+    }
+    try {
+      setLoading(true);
+      await callApi('requestWithdrawal', { amount: walletData.currentBalance });
+      alert('Withdrawal request submitted successfully!');
+      fetchWallet();
+    } catch (err: any) {
+      alert(err.message || 'Failed to request withdrawal.');
+      setLoading(false);
+    }
+  };
 
-        const now = new Date();
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay());
-        startOfWeek.setHours(0, 0, 0, 0);
-
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-        snapshot.docs.forEach((doc) => {
-          const data = doc.data() as import('../../src/services/job.service').Job;
-          const job = { ...data, id: doc.id };
-          jobs.push(job);
-
-          const amount = job.totalAmount || 0;
-          totalE += amount;
-          totalMins += job.totalMinutes || 0;
-
-          if (job.completedAt) {
-            const date = (job.completedAt as any).toDate ? (job.completedAt as any).toDate() : new Date(job.completedAt as any);
-            if (date >= startOfWeek) weekE += amount;
-            if (date >= startOfMonth) monthE += amount;
-          }
-        });
-
-        // Sort descending by completion date
-        jobs.sort((a, b) => {
-          const d1 = (a.completedAt as any)?.toDate ? (a.completedAt as any).toDate() : new Date((a.completedAt as any) || 0);
-          const d2 = (b.completedAt as any)?.toDate ? (b.completedAt as any).toDate() : new Date((b.completedAt as any) || 0);
-          return d2.getTime() - d1.getTime();
-        });
-
-        setCompletedJobs(jobs);
-        setLifetimeEarnings(totalE);
-        setThisWeekEarnings(weekE);
-        setThisMonthEarnings(monthE);
-        setAvgDuration(jobs.length > 0 ? Math.round(totalMins / jobs.length) : 0);
-      });
-
-    return () => unsub();
-  }, [workerProfile]);
-
-  const renderJobItem = ({ item }: { item: any }) => {
-    const dateStr = item.completedAt ? ((item.completedAt as any).toDate ? (item.completedAt as any).toDate() : new Date(item.completedAt as any)).toLocaleDateString() : 'N/A';
+  const renderHistoryItem = ({ item }: { item: any }) => {
+    const isEarning = item.type === 'EARNING';
+    const dateStr = new Date(item.date).toLocaleDateString();
     
     return (
       <View style={styles.jobCard}>
         <View style={styles.jobRow}>
-          <Text style={styles.jobNum}>{item.jobNumber || 'JOB'}</Text>
-          <Text style={styles.jobAmount}>₹{item.totalAmount?.toFixed(2) || '0.00'}</Text>
+          <Text style={styles.jobNum}>
+            {isEarning ? (item.isLegacy ? item.jobNumber || 'Legacy Job' : `Assignment: ${item.jobId.slice(0, 8)}`) : 'Withdrawal'}
+          </Text>
+          <Text style={[styles.jobAmount, { color: isEarning ? COLORS.success : COLORS.danger }]}>
+            {isEarning ? '+' : '-'}₹{item.amount?.toFixed(2) || '0.00'}
+          </Text>
         </View>
-        <Text style={styles.jobCustomer}>{item.customerName || 'Customer'}</Text>
+        <Text style={styles.jobCustomer}>{item.status}</Text>
         <View style={styles.jobRow}>
           <Text style={styles.jobDate}>{dateStr}</Text>
-          <Text style={styles.jobDuration}>{item.totalMinutes || 0} mins</Text>
         </View>
       </View>
     );
@@ -94,78 +74,110 @@ export default function EarningsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Earnings</Text>
+        <Text style={styles.title}>Earnings & Wallet</Text>
       </View>
 
-      <View style={styles.summaryContainer}>
-        <Text style={styles.lifetimeLabel}>Lifetime Earnings</Text>
-        <Text style={styles.lifetimeAmount}>₹{lifetimeEarnings.toFixed(2)}</Text>
-        
-        <View style={styles.periodRow}>
-          <View style={styles.periodBox}>
-            <Text style={styles.periodLabel}>This Week</Text>
-            <Text style={styles.periodAmount}>₹{thisWeekEarnings.toFixed(2)}</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+      ) : (
+        <>
+          <View style={styles.summaryContainer}>
+            <View style={styles.summaryBoxMain}>
+              <Text style={styles.summaryLabel}>Current Balance</Text>
+              <Text style={styles.summaryValueMain}>₹{walletData?.currentBalance?.toFixed(2) || '0.00'}</Text>
+              
+              <TouchableOpacity 
+                style={[styles.withdrawBtn, (walletData?.currentBalance || 0) <= 0 && styles.withdrawBtnDisabled]}
+                onPress={requestWithdrawal}
+              >
+                <Text style={styles.withdrawBtnText}>Withdraw</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.statsRow}>
+              <View style={styles.summaryBox}>
+                <Text style={styles.summaryLabelSmall}>Total Earned</Text>
+                <Text style={styles.summaryValueSmall}>₹{walletData?.totalEarnings?.toFixed(2) || '0.00'}</Text>
+              </View>
+              <View style={styles.summaryBox}>
+                <Text style={styles.summaryLabelSmall}>Withdrawn</Text>
+                <Text style={styles.summaryValueSmall}>₹{walletData?.totalWithdrawn?.toFixed(2) || '0.00'}</Text>
+              </View>
+              <View style={styles.summaryBox}>
+                <Text style={styles.summaryLabelSmall}>Pending</Text>
+                <Text style={styles.summaryValueSmall}>₹{walletData?.pendingWithdrawals?.toFixed(2) || '0.00'}</Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.periodBox}>
-            <Text style={styles.periodLabel}>This Month</Text>
-            <Text style={styles.periodAmount}>₹{thisMonthEarnings.toFixed(2)}</Text>
+
+          <View style={styles.listContainer}>
+            <Text style={styles.sectionTitle}>Transaction History</Text>
+            <FlatList
+              data={walletData?.history || []}
+              keyExtractor={(item) => item.id}
+              renderItem={renderHistoryItem}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20, color: COLORS.textMuted }}>No transactions yet.</Text>}
+            />
           </View>
-        </View>
-      </View>
-
-      <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statVal}>{completedJobs.length}</Text>
-          <Text style={styles.statLabel}>Total Jobs</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statVal}>⭐ {workerProfile?.stats?.averageRating?.toFixed(1) || '0.0'}</Text>
-          <Text style={styles.statLabel}>Avg Rating</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statVal}>{avgDuration}m</Text>
-          <Text style={styles.statLabel}>Avg Duration</Text>
-        </View>
-      </View>
-
-      <Text style={styles.sectionTitle}>Completed Jobs</Text>
-      
-      <FlatList
-        data={completedJobs}
-        renderItem={renderJobItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={<Text style={styles.emptyText}>No completed jobs yet.</Text>}
-      />
+        </>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a1a2e' },
-  header: { padding: 20, flexDirection: 'row', alignItems: 'center' },
-  backButton: { marginRight: 15, padding: 5 },
-  backButtonText: { color: '#fff', fontSize: 16 },
-  title: { fontSize: 20, fontWeight: '800', color: '#fff' },
-  summaryContainer: { backgroundColor: 'rgba(255,255,255,0.05)', margin: 20, padding: 20, borderRadius: 16, alignItems: 'center' },
-  lifetimeLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 16, marginBottom: 5 },
-  lifetimeAmount: { color: COLORS.success, fontSize: 40, fontWeight: 'bold', marginBottom: 20 },
-  periodRow: { flexDirection: 'row', width: '100%', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', paddingTop: 15 },
-  periodBox: { flex: 1, alignItems: 'center' },
-  periodLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 12, marginBottom: 5 },
-  periodAmount: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  statsRow: { flexDirection: 'row', marginHorizontal: 20, marginBottom: 20, gap: 10 },
-  statCard: { flex: 1, backgroundColor: 'rgba(255,255,255,0.05)', padding: 15, borderRadius: 12, alignItems: 'center' },
-  statVal: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
-  statLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 11 },
-  sectionTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginHorizontal: 20, marginBottom: 10 },
-  list: { paddingHorizontal: 20, paddingBottom: 20 },
-  jobCard: { backgroundColor: 'rgba(255,255,255,0.05)', padding: 15, borderRadius: 12, marginBottom: 10 },
-  jobRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
-  jobNum: { color: 'rgba(255,255,255,0.5)', fontSize: 12, fontFamily: 'monospace' },
-  jobAmount: { color: COLORS.success, fontSize: 16, fontWeight: 'bold' },
-  jobCustomer: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
-  jobDate: { color: 'rgba(255,255,255,0.5)', fontSize: 12 },
-  jobDuration: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
-  emptyText: { color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 }
+  container: { flex: 1, backgroundColor: COLORS.background },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 20, backgroundColor: COLORS.white, elevation: 2 },
+  backButton: { marginRight: 16 },
+  backButtonText: { color: COLORS.primary, fontSize: 16, fontWeight: '500' },
+  title: { fontSize: 20, fontWeight: 'bold', color: COLORS.text },
+  summaryContainer: { padding: 16 },
+  summaryBoxMain: {
+    backgroundColor: COLORS.primary,
+    padding: 24,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+    elevation: 4,
+  },
+  summaryLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 16, marginBottom: 8 },
+  summaryValueMain: { color: COLORS.white, fontSize: 36, fontWeight: 'bold', marginBottom: 16 },
+  withdrawBtn: {
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  withdrawBtnDisabled: { opacity: 0.5 },
+  withdrawBtnText: { color: COLORS.primary, fontSize: 16, fontWeight: 'bold' },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  summaryBox: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginHorizontal: 4,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  summaryLabelSmall: { color: COLORS.textMuted, fontSize: 12, marginBottom: 4 },
+  summaryValueSmall: { color: COLORS.text, fontSize: 16, fontWeight: 'bold' },
+  listContainer: { flex: 1, paddingHorizontal: 16 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: COLORS.text, marginBottom: 12 },
+  jobCard: {
+    backgroundColor: COLORS.white,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  jobRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  jobNum: { fontSize: 16, fontWeight: 'bold', color: COLORS.text },
+  jobAmount: { fontSize: 16, fontWeight: 'bold' },
+  jobCustomer: { fontSize: 14, color: COLORS.textMuted, marginBottom: 8 },
+  jobDate: { fontSize: 12, color: COLORS.textMuted },
 });

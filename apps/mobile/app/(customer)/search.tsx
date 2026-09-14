@@ -129,6 +129,7 @@ export default function SearchScreen() {
         longitude: myLocation?.longitude ?? 77.2090,
         hourlyRate: bookingWorker.hourlyRate,
         estimatedHours: 1,
+        requiredWorkers: 1,
         paymentId: '',
       });
       setBookingWorker(null);

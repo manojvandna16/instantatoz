@@ -11,8 +11,9 @@ export interface UserProfile {
   phone: string;
   email?: string;
   photoUrl?: string;
-  address?: string;
-  status: 'ACTIVE' | 'DELETED';
+  address?: any;
+  addressString?: string;
+  status: 'ACTIVE' | 'DELETED' | 'SUSPENDED' | 'DEACTIVATED';
   hasWorkerProfile: boolean;
   activeMode: 'customer' | 'worker';
   createdAt?: unknown;
@@ -24,11 +25,12 @@ export interface WorkerProfile {
   name: string;
   phone?: string;
   email?: string;
-  address?: string;
+  address?: any;
   category: string;
   skills: string[];
   hourlyRate: number;
   experience: string;
+  photoUrl?: string;
   resumeText?: string;
   bio?: string;
   verificationStatus: string;

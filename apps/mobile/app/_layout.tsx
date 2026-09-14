@@ -22,6 +22,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '../src/hooks/useAuth';
 import { LoadingScreen } from '../src/components/ui/LoadingScreen';
+import { registerForPushNotificationsAsync } from '../src/services/notifications.service';
 
 // Catch any errors thrown by the Layout component.
 export { ErrorBoundary } from 'expo-router';
@@ -39,6 +40,12 @@ function NavigationGuard() {
   const segments = useSegments();
 
   useEffect(() => {
+    if (uid) {
+      registerForPushNotificationsAsync().catch(console.warn);
+    }
+  }, [uid]);
+
+  useEffect(() => {
     if (!isAuthChecked) return;
 
     SplashScreen.hideAsync();
@@ -47,7 +54,7 @@ function NavigationGuard() {
 
     if (!uid) {
       if (!inAuthGroup) {
-        router.replace('/(auth)/');
+        router.replace('/(auth)');
       }
     } else if (!userProfile) {
       const segs = segments as string[];

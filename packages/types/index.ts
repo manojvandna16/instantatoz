@@ -138,18 +138,27 @@ export interface Job {
   mainCategoryId: string;
   subcategoryId: string;
   description: string;
-  numberOfWorkers: number;
+  
+  // NEW fields for multi-worker
+  requiredWorkers: number;
+  assignedWorkerIds: string[];
+  jobStartedAt?: Date; // Triggers the common 5-minute window
+  
+  // Legacy backward compatibility
+  numberOfWorkers?: number;
+  workerIdAssigned?: string;
+  
   expectedHours: number;
   preferredStartTime: Date;
   location: GeoPoint;
   address: string;
-  status: JobStatus;
+  status: JobStatus | 'FINDING_WORKERS' | 'FULLY_ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   estimatedAmount?: number;
   finalAmount?: number;
   platformFee?: number;
   workerPayable?: number;
   payment?: Payment;
-  assignments: JobAssignment[];
+  assignments?: JobAssignment[];
   workSession?: WorkSession;
   cancellationReason?: string;
   cancelledBy?: string;
@@ -161,11 +170,27 @@ export interface JobAssignment {
   id: string;
   jobId: string;
   workerId: string;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
-  acceptedAt?: Date;
-  arrivedAt?: Date;
+  
+  // Financial Allocation
+  grossWorkerAmount: number;
+  commissionAmount: number;
+  netWorkerAmount: number;
+  
+  // State
+  status: 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'WORKER_NO_SHOW';
+  
+  // Timers and OTP
+  startOtp: string;
+  endOtp: string;
+  startedAt?: Date;
+  completedAt?: Date;
+  cancelledAt?: Date;
+  
+  // Analytics
   distance?: number;
   estimatedArrivalMinutes?: number;
+  
+  createdAt: Date;
 }
 
 export interface WorkSession {
@@ -216,6 +241,22 @@ export interface WorkerPayout {
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export type PayoutStatus = 'PENDING' | 'APPROVED' | 'PROCESSING' | 'PAID' | 'FAILED';
+
+export interface Payout {
+  id?: string;
+  workerId: string;
+  grossAmount: number;
+  netAmount: number;
+  platformFee: number;
+  payoutStatus: PayoutStatus;
+  utrNumber?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  paidAt?: Date;
 }
 
 export interface Review {

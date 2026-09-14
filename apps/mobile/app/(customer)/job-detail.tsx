@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import RazorpayCheckout from 'react-native-razorpay';
 import { COLORS, JOB_STATUS } from '../../src/constants';
-import { listenJob, cancelJob, markJobPaid, rateJob, Job, formatDuration, formatTimer } from '../../src/services/job.service';
+import { listenJob, cancelJob, markJobPaid, rateJob, Job, formatDuration, formatTimer, resolveCancellation, getUnresolvedAssignments } from '../../src/services/job.service';
 import { useAuthStore } from '../../src/store/authStore';
 
 export default function JobDetailScreen() {
@@ -78,6 +78,24 @@ export default function JobDetailScreen() {
     }
   }
 
+  async function handleResolve(action: 'replace' | 'refund') {
+    try {
+      setLoading(true);
+      const unresolved = await getUnresolvedAssignments(jobId!);
+      if (unresolved.length === 0) {
+        Alert.alert('Notice', 'No unresolved slots found.');
+        return;
+      }
+      const workerId = unresolved[0].workerId; // resolve first one
+      await resolveCancellation(jobId!, workerId, action);
+      Alert.alert('Success', `Action processed: ${action}`);
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   if (loading) return (
     <SafeAreaView style={styles.container}>
       <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
@@ -122,15 +140,55 @@ export default function JobDetailScreen() {
           <Text style={styles.cardValue}>₹{job.hourlyRate}/hr</Text>
         </View>
 
-        {/* FINDING WORKERS */}
-        {(job.status === JOB_STATUS.CREATED || job.status === JOB_STATUS.FINDING_WORKERS) && (
+        {/* FINDING WORKERS / CREATED */}
+        {(job.status === JOB_STATUS.CREATED || job.status === JOB_STATUS.FINDING_WORKERS || job.status === JOB_STATUS.FULLY_ASSIGNED) && (
           <View style={styles.statusCard}>
-            <ActivityIndicator color={COLORS.primary} />
-            <Text style={styles.statusTitle}>Finding Workers Near You...</Text>
-            <Text style={styles.statusDesc}>We're matching you with available workers. This usually takes 1-3 minutes.</Text>
+            {job.status === JOB_STATUS.FULLY_ASSIGNED ? (
+              <Text style={styles.statusTitle}>✅ Fully Assigned!</Text>
+            ) : (
+              <>
+                <ActivityIndicator color={COLORS.primary} />
+                <Text style={styles.statusTitle}>Finding Workers Near You...</Text>
+              </>
+            )}
+            
+            {job.requiredWorkers && job.requiredWorkers > 1 ? (
+              <>
+                <Text style={styles.statusDesc}>
+                  Workers Assigned: {(job.assignedWorkerIds?.length || 0) + (job.refundedAllocations || 0)}/{job.requiredWorkers}
+                </Text>
+                {job.refundedAllocations! > 0 && (
+                  <Text style={{ ...styles.statusDesc, color: COLORS.primary, marginTop: 4 }}>
+                    ℹ️ {job.requiredWorkers} workers were requested. {job.assignedWorkerIds?.length || 0} worker allocations were fulfilled and {job.refundedAllocations} allocation was refunded.
+                  </Text>
+                )}
+                <Text style={{ ...styles.statusDesc, marginTop: 4, fontWeight: 'bold' }}>
+                  Work will start after all required workers are assigned.
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.statusDesc}>We're matching you with available workers. This usually takes 1-3 minutes.</Text>
+            )}
             <TouchableOpacity style={styles.dangerBtn} onPress={handleCancel}>
               <Text style={styles.dangerBtnText}>Cancel Job</Text>
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* NEEDS RESOLUTION */}
+        {job.status === JOB_STATUS.NEEDS_RESOLUTION && (
+          <View style={{ ...styles.statusCard, borderColor: COLORS.warning, borderWidth: 1 }}>
+            <Text style={{ fontSize: 24 }}>⚠️</Text>
+            <Text style={styles.statusTitle}>Worker unavailable — action required</Text>
+            <Text style={styles.statusDesc}>The job cannot start until this is resolved.</Text>
+            <View style={{ gap: 8, width: '100%' }}>
+              <TouchableOpacity style={{ ...styles.dangerBtn, backgroundColor: COLORS.primary }} onPress={() => handleResolve('replace')}>
+                <Text style={styles.dangerBtnText}>Find Replacement</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.dangerBtn} onPress={() => handleResolve('refund')}>
+                <Text style={styles.dangerBtnText}>Cancel & Refund Unfulfilled Slot</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
@@ -173,6 +231,15 @@ export default function JobDetailScreen() {
               <Text style={{ fontSize: 32, letterSpacing: 8, fontWeight: '900', color: '#fff' }}>{job.endOtp}</Text>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', marginTop: 8, textAlign: 'center' }}>Provide this END OTP to the worker only when the work is fully completed.</Text>
             </View>
+          </View>
+        )}
+
+        {/* DISPUTED / ABANDONED */}
+        {job.status === JOB_STATUS.DISPUTED && (
+          <View style={{ ...styles.statusCard, borderColor: COLORS.danger, borderWidth: 1 }}>
+            <Text style={{ fontSize: 24 }}>⚠️</Text>
+            <Text style={styles.statusTitle}>Mid-Job Abandonment</Text>
+            <Text style={styles.statusDesc}>A worker abandoned the job. The remaining workers can finish. This case has been sent for support/admin review.</Text>
           </View>
         )}
 

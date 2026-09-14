@@ -10,6 +10,8 @@ import * as Location from 'expo-location';
 import { useAuthStore } from '../../src/store/authStore';
 import { COLORS, SERVICE_CATEGORIES } from '../../src/constants';
 import { createJob } from '../../src/services/job.service';
+import { callApi } from '../../src/services/api';
+import AddressForm, { AddressData } from '../../src/components/AddressForm';
 
 export default function PostJobScreen() {
   const router = useRouter();
@@ -17,7 +19,13 @@ export default function PostJobScreen() {
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [address, setAddress] = useState('');
+  const [useProfileAddress, setUseProfileAddress] = useState(true);
+  const [jobAddress, setJobAddress] = useState<AddressData>({
+    country: 'India', state: 'Uttarakhand', district: '', tehsil: '', villageOrWard: '', locality: ''
+  });
+  const [addressStr, setAddressStr] = useState('');
+  const [estimatedHours, setEstimatedHours] = useState('');
+  const [requiredWorkers, setRequiredWorkers] = useState('1');
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -37,80 +45,71 @@ export default function PostJobScreen() {
       setLatitude(loc.coords.latitude);
       setLongitude(loc.coords.longitude);
       
-      const reverse = await Location.reverseGeocodeAsync({
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude
-      });
-      if (reverse && reverse.length > 0) {
-        const addr = `${reverse[0].name || ''}, ${reverse[0].street || ''}, ${reverse[0].city || ''}, ${reverse[0].region || ''}`;
-        setAddress(addr.replace(/^, | , |,,/g, '').trim());
-      } else {
-        setAddress('Location Found. Please verify.');
+      const geocode = await Location.reverseGeocodeAsync({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      if (geocode.length > 0) {
+        const g = geocode[0];
+        const addrParts = [g.name, g.street, g.subregion, g.city, g.region, g.postalCode].filter(Boolean);
+        setAddressStr(addrParts.join(', '));
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.log('Location error:', err);
       Alert.alert('Error', 'Failed to fetch location.');
     } finally {
       setLoadingLoc(false);
     }
   }
 
-  const [estimatedHours, setEstimatedHours] = useState('1');
-  const hourlyRate = 150;
-
   async function handlePost() {
     if (!userProfile) return;
     if (!description.trim()) { Alert.alert('Required', 'Please describe your requirement.'); return; }
-    if (!address.trim()) { Alert.alert('Required', 'Please enter your address.'); return; }
     
+    let finalAddressString = '';
+    if (useProfileAddress) {
+      if (!userProfile?.address || !userProfile?.addressString) {
+        return Alert.alert('Incomplete Profile', 'Your profile address is incomplete. Please select "Use Another Address" or update your profile first.');
+      }
+      finalAddressString = userProfile.addressString;
+    } else {
+      if (!jobAddress.district || !jobAddress.tehsil || !jobAddress.villageOrWard) {
+        return Alert.alert('Incomplete Address', 'Please provide district, tehsil, and village/ward for the job location.');
+      }
+      finalAddressString = `${jobAddress.locality}, ${jobAddress.villageOrWard}, ${jobAddress.tehsil}, ${jobAddress.district}, ${jobAddress.state}, ${jobAddress.country}`;
+    }
+
     const hours = parseInt(estimatedHours, 10);
     if (isNaN(hours) || hours < 1) { Alert.alert('Required', 'Please enter valid estimated hours.'); return; }
+    
+    const workersCount = parseInt(requiredWorkers, 10);
+    if (isNaN(workersCount) || workersCount < 1) { Alert.alert('Required', 'Please enter a valid number of workers.'); return; }
 
     setLoading(true);
     try {
-      const totalAmount = hours * hourlyRate;
+      const hourlyRate = 150; // Hardcoded default for now, could be dynamic per category
+      const totalAmount = hours * hourlyRate * workersCount;
 
       let orderData: any = null;
 
       try {
         // 1. Create order on backend for payment
-        const keyId = 'rzp_live_TY2JeEndPXwC2a';
-        const keySecret = 'zO2G8ZjRor9ZmwSQeHKR7686';
-        
-        const base64 = require('react-native-base64').default || require('react-native-base64');
-        const authHeader = 'Basic ' + base64.encode(keyId + ':' + keySecret);
-        
-        const orderResponse = await fetch('https://api.razorpay.com/v1/orders', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': authHeader
-          },
-          body: JSON.stringify({
-            amount: Math.round(totalAmount * 100), // in paise
-            currency: 'INR',
-            receipt: `rcpt_newjob_${Date.now()}`,
-          }),
+        orderData = await callApi('createRazorpayOrder', { 
+          jobData: {
+            customerName: userProfile.name,
+            category,
+            description: description.trim(),
+            address: finalAddressString,
+            latitude: latitude || 0,
+            longitude: longitude || 0,
+            hourlyRate,
+            estimatedHours: hours,
+            requiredWorkers: workersCount,
+          }
         });
-        
-        const responseText = await orderResponse.text();
-        const rpData = JSON.parse(responseText);
-        
-        orderData = {
-          order_id: rpData.id,
-          amount: rpData.amount,
-          currency: rpData.currency,
-          error: rpData.error?.description
-        };
-
-        if (!orderResponse.ok || !orderData.order_id) {
-          throw new Error(orderData.error || 'Failed to create payment order.');
-        }
-      } catch (backendError) {
+      } catch (backendError: any) {
         console.warn('Backend API failed, simulating payment for testing:', backendError);
         // Fallback for local testing if the backend is not deployed
         Alert.alert(
           'Simulated Payment',
-          'Backend API is not reachable. Simulating a successful payment for testing purposes.',
+          `Backend API is not reachable (${backendError.message}). Simulating a successful payment for testing purposes.`,
           [
             {
               text: 'OK',
@@ -120,11 +119,12 @@ export default function PostJobScreen() {
                   customerName: userProfile.name,
                   category,
                   description: description.trim(),
-                  address: address.trim(),
-                  latitude,
-                  longitude,
+                  address: finalAddressString,
+                  latitude: latitude || 0,
+                  longitude: longitude || 0,
                   hourlyRate,
                   estimatedHours: hours,
+                  requiredWorkers: workersCount,
                   paymentId: 'pay_simulated_' + Date.now()
                 });
         
@@ -146,7 +146,7 @@ export default function PostJobScreen() {
         description: `Prepaid Booking - ${category}`,
         image: 'https://instantatoz.online/favicon.ico',
         currency: 'INR',
-        key: 'rzp_live_TY2JeEndPXwC2a',
+        key: orderData.key,
         amount: orderData.amount,
         name: 'Instantatoz Services',
         order_id: orderData.order_id,
@@ -171,24 +171,26 @@ export default function PostJobScreen() {
         return;
       }
 
-      // Payment Success -> Create Job in DB
-      const jobId = await createJob({
-        customerId: userProfile.uid,
-        customerName: userProfile.name,
-        category,
-        description: description.trim(),
-        address: address.trim(),
-        latitude: latitude || 0, // Fallback to 0 if undefined
-        longitude: longitude || 0,
-        hourlyRate,
-        estimatedHours: hours,
-        paymentId: paymentData.razorpay_payment_id
-      });
+      // 2. Verify Payment on Backend
+      try {
+        await callApi('verifyPayment', {
+          razorpay_order_id: paymentData.razorpay_order_id,
+          razorpay_payment_id: paymentData.razorpay_payment_id,
+          razorpay_signature: paymentData.razorpay_signature,
+          jobId: orderData.jobId
+        });
+      } catch (verifyError: any) {
+        console.error('[Payment Verification Failed]', verifyError);
+        Alert.alert('Payment Verification Failed', 'We could not verify your payment. If money was deducted, please contact support.');
+        setLoading(false);
+        return;
+      }
 
+      // 3. Payment Success -> Job is live
       Alert.alert(
         '✅ Job Posted & Paid!',
         'Your job request is live. Workers nearby will see it and accept shortly.',
-        [{ text: 'Track Job', onPress: () => router.replace({ pathname: '/(customer)/job-detail', params: { jobId } }) }]
+        [{ text: 'Track Job', onPress: () => router.replace({ pathname: '/(customer)/job-detail', params: { jobId: orderData.jobId } }) }]
       );
 
     } catch (err: any) {
@@ -283,23 +285,60 @@ export default function PostJobScreen() {
               value={estimatedHours}
               onChangeText={setEstimatedHours}
             />
+
+            <Text style={styles.label}>Number of Workers Required</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="e.g. 1"
+              placeholderTextColor={COLORS.textMuted}
+              keyboardType="number-pad"
+              value={requiredWorkers}
+              onChangeText={setRequiredWorkers}
+            />
+
             <Text style={{ fontSize: 13, color: COLORS.primary, fontWeight: '600', marginBottom: 16 }}>
-              Amount to Pay: ₹{parseInt(estimatedHours || '0') * hourlyRate} (₹{hourlyRate}/hr)
+              Amount to Pay: ₹{parseInt(estimatedHours || '0') * 150 * parseInt(requiredWorkers || '1')} (₹150/hr)
             </Text>
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <Text style={[styles.label, { marginBottom: 0 }]}>Your Address</Text>
+              <Text style={[styles.label, { marginBottom: 0 }]}>Job Location</Text>
               <TouchableOpacity onPress={handleGetLocation}>
-                {loadingLoc ? <ActivityIndicator size="small" color={COLORS.primary} /> : <Text style={styles.locLink}>📍 Use Current Location</Text>}
+                {loadingLoc ? <ActivityIndicator size="small" color={COLORS.primary} /> : <Text style={styles.locLink}>📍 Use Current GPS Location</Text>}
               </TouchableOpacity>
             </View>
-            <TextInput
-              style={styles.textInput}
-              placeholder="e.g. Flat 202, Sunshine Apartments, MG Road, Bengaluru"
-              placeholderTextColor={COLORS.textMuted}
-              value={address}
-              onChangeText={setAddress}
-            />
+
+            <View style={styles.addressToggleRow}>
+              <TouchableOpacity
+                style={[styles.addressToggleBtn, useProfileAddress && styles.addressToggleBtnActive]}
+                onPress={() => setUseProfileAddress(true)}
+              >
+                <Text style={[styles.addressToggleText, useProfileAddress && styles.addressToggleTextActive]}>Use My Profile Address</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.addressToggleBtn, !useProfileAddress && styles.addressToggleBtnActive]}
+                onPress={() => setUseProfileAddress(false)}
+              >
+                <Text style={[styles.addressToggleText, !useProfileAddress && styles.addressToggleTextActive]}>Use Another Address</Text>
+              </TouchableOpacity>
+            </View>
+
+            {useProfileAddress ? (
+              <View style={styles.profileAddressCard}>
+                {userProfile?.addressString ? (
+                  <Text style={{ color: '#fff' }}>{userProfile.addressString}</Text>
+                ) : (
+                  <Text style={{ color: COLORS.warning }}>Profile address is incomplete. Please update it in the profile section or choose "Use Another Address".</Text>
+                )}
+              </View>
+            ) : (
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.02)', padding: 10, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', marginBottom: 20 }}>
+                <AddressForm value={jobAddress} onChange={setJobAddress} />
+                
+                {addressStr ? (
+                  <Text style={{ color: COLORS.success, fontSize: 12, marginTop: 10 }}>GPS Captured: {addressStr}</Text>
+                ) : null}
+              </View>
+            )}
 
             <View style={styles.infoCard}>
               <Text style={styles.infoTitle}>💡 How prepaid works</Text>
@@ -314,8 +353,8 @@ export default function PostJobScreen() {
                 <Text style={styles.backBtnText}>← Back</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.nextBtn, styles.postBtn, (!description.trim() || !address.trim() || !estimatedHours || loading) && styles.btnDisabled]}
-                disabled={!description.trim() || !address.trim() || !estimatedHours || loading}
+                style={[styles.nextBtn, styles.postBtn, (!description.trim() || (!useProfileAddress && (!jobAddress.district || !jobAddress.tehsil || !jobAddress.villageOrWard)) || !estimatedHours || loading) && styles.btnDisabled]}
+                disabled={!description.trim() || (!useProfileAddress && (!jobAddress.district || !jobAddress.tehsil || !jobAddress.villageOrWard)) || !estimatedHours || loading}
                 onPress={handlePost}
                 activeOpacity={0.8}
               >
@@ -364,7 +403,13 @@ const styles = StyleSheet.create({
   backBtnText: { color: COLORS.text, fontWeight: '600', fontSize: 15 },
   nextBtn: { flex: 2, backgroundColor: COLORS.primary, paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
   postBtn: { flex: 2 },
-  btnDisabled: { backgroundColor: COLORS.border },
+  btnDisabled: { opacity: 0.5 },
+  addressToggleRow: { flexDirection: 'row', gap: 10, marginBottom: 15 },
+  addressToggleBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center' },
+  addressToggleBtnActive: { backgroundColor: 'rgba(255,255,255,0.1)', borderColor: COLORS.primary },
+  addressToggleText: { color: 'rgba(255,255,255,0.5)', fontSize: 13, fontWeight: '600' },
+  addressToggleTextActive: { color: COLORS.primary },
+  profileAddressCard: { backgroundColor: 'rgba(255,255,255,0.05)', padding: 15, borderRadius: 12, marginBottom: 20 },
   nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   locLink: { color: COLORS.primary, fontSize: 12, fontWeight: '700' },
 });

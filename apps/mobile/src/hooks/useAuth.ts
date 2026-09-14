@@ -64,7 +64,7 @@ export function useAuth() {
               skills: wd.skills || [],
               hourlyRate: wd.hourlyRate || 0,
               experience: wd.experience || '',
-              profileUrl: wd.profileUrl || wd.photoUrl || undefined,
+              photoUrl: wd.profileUrl || wd.photoUrl || undefined,
               verificationStatus: wd.verificationStatus || 'PENDING',
               isOnline: wd.isOnline || false,
               stats: wd.stats || { completedJobs: 0, averageRating: 0, ratingCount: 0 },

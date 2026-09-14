@@ -14,6 +14,7 @@ import firestore from '@react-native-firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
 import { auth, db } from '../../src/services/firebase';
 import { callApi } from '../../src/services/api';
+import AddressForm, { AddressData } from '../../src/components/AddressForm';
 import { useAuthStore } from '../../src/store/authStore';
 import { useModeStore } from '../../src/store/modeStore';
 import { signOut } from '../../src/services/auth.service';
@@ -28,7 +29,19 @@ export default function ProfileScreen() {
   // Edit Profile State
   const [editProfileVisible, setEditProfileVisible] = useState(false);
   const [newName, setNewName] = useState('');
-  const [newAddress, setNewAddress] = useState('');
+  
+  // Handle legacy string addresses or object addresses
+  const defaultAddress: AddressData = typeof userProfile?.address === 'object' && userProfile.address !== null 
+    ? userProfile.address 
+    : {
+        country: 'India',
+        state: 'Uttarakhand',
+        district: '',
+        tehsil: '',
+        villageOrWard: '',
+        locality: typeof userProfile?.address === 'string' ? userProfile.address : ''
+      };
+  const [newAddress, setNewAddress] = useState<AddressData>(defaultAddress);
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   
@@ -77,14 +90,25 @@ export default function ProfileScreen() {
   async function handleSaveProfile() {
     const trimmedName = newName.trim();
     if (!trimmedName || trimmedName.length < 2) { Alert.alert('Invalid', 'Name must be at least 2 characters.'); return; }
-    if (!newAddress) { Alert.alert('Invalid', 'Please select an address.'); return; }
+    if (!newAddress.district || !newAddress.tehsil || !newAddress.villageOrWard) { 
+      Alert.alert('Incomplete Address', 'Please fill district, tehsil, and village/ward.'); 
+      return; 
+    }
     
     setSavingProfile(true);
     try {
       const user = auth().currentUser;
       if (!user) throw new Error('Not authenticated');
-      await db.collection(COLLECTIONS.USERS).doc(user.uid).update({ name: trimmedName, address: newAddress, updatedAt: firestore.Timestamp.now() });
-      setUserProfile({ ...userProfile!, name: trimmedName, address: newAddress });
+      
+      const addressString = `${newAddress.locality ? newAddress.locality + ', ' : ''}${newAddress.villageOrWard}, ${newAddress.tehsil}, ${newAddress.district}, ${newAddress.state}`;
+      
+      await db.collection(COLLECTIONS.USERS).doc(user.uid).update({ 
+        name: trimmedName, 
+        address: newAddress, 
+        addressString, // Store formatted string for easier searching/display
+        updatedAt: firestore.Timestamp.now() 
+      });
+      setUserProfile({ ...userProfile!, name: trimmedName, address: newAddress, addressString });
       setEditProfileVisible(false);
       Alert.alert('✅ Saved', 'Your profile has been updated.');
     } catch (err: any) {
@@ -110,10 +134,38 @@ export default function ProfileScreen() {
     }
   }
 
-  function handleSwitchToWorker() {
-    if (workerProfile?.verificationStatus === WORKER_STATUS.ACTIVE) {
-      setMode('worker');
-      router.replace('/(worker)/dashboard');
+  async function handleSwitchToWorker() {
+    if (!workerProfile || !userProfile) return;
+    
+    const userStatus = userProfile.status;
+    const vStatus = workerProfile.verificationStatus;
+
+    if (userStatus === 'DELETED' || userStatus === 'SUSPENDED' || userStatus === 'DEACTIVATED') {
+      Alert.alert('Worker Mode unavailable', 'Your worker account is currently inactive. Please contact support if you need assistance.');
+      return;
+    }
+
+    if (vStatus === 'PENDING' || vStatus === 'UNDER_REVIEW') {
+      Alert.alert('Worker Mode unavailable', 'Your worker profile is pending approval.');
+      return;
+    }
+
+    if (vStatus === 'REJECTED') {
+      Alert.alert('Worker Mode unavailable', 'Your worker profile has not been approved. Please check your profile or contact support.');
+      return;
+    }
+
+    if (vStatus === 'ACTIVE' && userStatus === 'ACTIVE') {
+      try {
+        await db.collection(COLLECTIONS.USERS).doc(userProfile.uid).update({ activeMode: 'worker', updatedAt: firestore.Timestamp.now() });
+        setUserProfile({ ...userProfile, activeMode: 'worker' });
+        setMode('worker');
+        router.replace('/(worker)/dashboard');
+      } catch (err: any) {
+        Alert.alert('Error', err.message || 'Failed to switch mode.');
+      }
+    } else {
+      Alert.alert('Worker Mode unavailable', 'Your worker account is not active.');
     }
   }
 
@@ -286,7 +338,7 @@ export default function ProfileScreen() {
             </View>
             <Text style={styles.userPhone}>{userProfile?.phone || ''}</Text>
             {userProfile?.address && (
-              <Text style={styles.userAddress}>📍 {userProfile.address}</Text>
+              <Text style={styles.userAddress}>📍 {userProfile.addressString || (typeof userProfile.address === 'string' ? userProfile.address : `${userProfile.address.villageOrWard}, ${userProfile.address.tehsil}`)}</Text>
             )}
           </View>
         </View>
@@ -302,19 +354,13 @@ export default function ProfileScreen() {
                 style={styles.modalInput}
                 value={newName}
                 onChangeText={setNewName}
-                placeholder="Enter your full name"
+                placeholder="Your Name"
+                placeholderTextColor={COLORS.textMuted}
               />
 
-              <Text style={styles.label}>Full Address</Text>
-              <TextInput
-                style={[styles.modalInput, { height: 80, textAlignVertical: 'top' }]}
-                value={newAddress}
-                onChangeText={setNewAddress}
-                placeholder="e.g. Village, Ward, Tehsil, Pincode"
-                multiline
-                numberOfLines={3}
-              />
-
+              <Text style={styles.label}>Address</Text>
+              <AddressForm value={newAddress} onChange={setNewAddress} />
+              
               <View style={styles.modalBtns}>
                 <TouchableOpacity style={styles.modalBtnCancel} onPress={() => setEditProfileVisible(false)}>
                   <Text style={styles.modalBtnTextCancel}>Cancel</Text>

@@ -87,12 +87,40 @@ service cloud.firestore {
       allow create: if isAuth()
         && isValidString(request.resource.data.customerId, 1, 128)
         && request.resource.data.customerId == request.auth.uid;
-      // Only the job creator or assigned worker can update, or Admin
+      // Only the job creator or assigned worker can update, or Admin.
+      // Restrict fields to prevent spoofing status, amounts, and OTPs.
       allow update: if isAdmin() || (isAuth()
-        && (resource.data.customerId == request.auth.uid
-            || resource.data.workerId == request.auth.uid));
+        && (resource.data.customerId == request.auth.uid || resource.data.workerId == request.auth.uid)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
+          ['status', 'totalAmount', 'hourlyRate', 'otp', 'endOtp', 'paymentStatus', 'requiredWorkers', 'assignedWorkerIds', 'refundedAllocations']
+        ));
       // Jobs cannot be deleted (soft-delete via status field)
       allow delete: if false;
+    }
+
+    // =========================================================
+    // job_assignments — multi-worker assignments
+    // =========================================================
+    match /job_assignments/{assignmentId} {
+      // Authenticated users can read assignments related to their jobs
+      allow read: if isAdmin() || (isAuth() && (
+        resource.data.customerId == request.auth.uid || 
+        resource.data.workerId == request.auth.uid
+      ));
+      // Clients cannot create/update/delete assignments directly, they must use the backend API
+      allow write: if false;
+    }
+
+    // =========================================================
+    // refund_operations — tracking partial refunds
+    // =========================================================
+    match /refund_operations/{refundId} {
+      // Authenticated users can read refunds related to their jobs
+      allow read: if isAdmin() || (isAuth() && (
+        resource.data.customerId == request.auth.uid || 
+        resource.data.workerId == request.auth.uid
+      ));
+      allow write: if false;
     }
 
     // =========================================================

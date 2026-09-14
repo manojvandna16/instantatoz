@@ -1,10 +1,10 @@
-# =============================================================
-# Instantatoz — Root .gitignore
+﻿# =============================================================
+# Instantatoz â€” Root .gitignore
 # NEVER commit secrets or build artifacts
 # =============================================================
 
 # -----------------------------------------------
-# Environment variables — NEVER commit these
+# Environment variables â€” NEVER commit these
 # -----------------------------------------------
 .env
 .env.local
@@ -35,7 +35,7 @@ backend/dist/
 **/.firebase/
 
 # -----------------------------------------------
-# Service Account Keys — NEVER commit these
+# Service Account Keys â€” NEVER commit these
 # -----------------------------------------------
 *-adminsdk-*.json
 sa-key.json
@@ -91,3 +91,10 @@ apps/mobile/.env
 apps/mobile/android/
 apps/mobile/ios/
 apps/mobile/.expo/
+.gradle/
+
+apps/mobile/dist/
+
+
+.gradle/
+apps/mobile/dist/
