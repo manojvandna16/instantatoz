@@ -4,9 +4,8 @@
  */
 import { auth } from './firebase';
 
-// Update this to your deployed Vercel domain in production
-// For physical Android testing, always use the live Vercel backend.
-const BASE_URL = 'https://instantatoz.vercel.app/api/mobile';
+// Force the app to point to the live Vercel backend so it doesn't fail on a physical device
+const BASE_URL = 'https://instantatoz.online/api/mobile';
 
 export async function callApi(action: string, data: any = {}) {
   const user = auth().currentUser;

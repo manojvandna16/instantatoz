@@ -25,18 +25,18 @@ export const COLLECTIONS = {
 
 // Legal document URLs — all hosted on the website
 export const LEGAL_URLS = {
-  terms: 'https://instantatoz.vercel.app/terms-and-conditions',
-  privacy: 'https://instantatoz.vercel.app/privacy-policy',
-  userTerms: 'https://instantatoz.vercel.app/user-terms',
-  workerTerms: 'https://instantatoz.vercel.app/worker-terms',
-  workerVerification: 'https://instantatoz.vercel.app/worker-verification-policy',
-  cancellation: 'https://instantatoz.vercel.app/cancellation-policy',
-  refund: 'https://instantatoz.vercel.app/refund-policy',
-  payment: 'https://instantatoz.vercel.app/payment-policy',
-  communityGuidelines: 'https://instantatoz.vercel.app/community-guidelines',
-  grievance: 'https://instantatoz.vercel.app/grievance-redressal',
-  deleteAccount: 'https://instantatoz.vercel.app/delete-account',
-  support: 'https://instantatoz.vercel.app/support',
+  terms: 'https://instantatoz.online/terms-and-conditions',
+  privacy: 'https://instantatoz.online/privacy-policy',
+  userTerms: 'https://instantatoz.online/user-terms',
+  workerTerms: 'https://instantatoz.online/worker-terms',
+  workerVerification: 'https://instantatoz.online/worker-verification-policy',
+  cancellation: 'https://instantatoz.online/cancellation-policy',
+  refund: 'https://instantatoz.online/refund-policy',
+  payment: 'https://instantatoz.online/payment-policy',
+  communityGuidelines: 'https://instantatoz.online/community-guidelines',
+  grievance: 'https://instantatoz.online/grievance-redressal',
+  deleteAccount: 'https://instantatoz.online/delete-account',
+  support: 'https://instantatoz.online/support',
 } as const;
 
 // Worker verification statuses (mirror of WorkerStatus enum)
