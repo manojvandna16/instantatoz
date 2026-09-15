@@ -39,8 +39,8 @@ export async function POST(request: Request) {
       // Single user
       const userDoc = await db.collection('users').doc(targetUserId).get();
       if (userDoc.exists) {
-        const userData = userDoc.data();
-        if (userData?.pushTokens?.length > 0 && userData?.settings?.notificationsEnabled !== false) {
+        const userData = userDoc.data() || {};
+        if (userData.pushTokens && userData.pushTokens.length > 0 && userData.settings?.notificationsEnabled !== false) {
           tokens = userData.pushTokens;
         }
       }
@@ -48,8 +48,8 @@ export async function POST(request: Request) {
       // All users (this is a simplified approach, for large apps use batched queries or topics)
       const usersSnap = await db.collection('users').get();
       usersSnap.docs.forEach((doc: any) => {
-        const userData = doc.data();
-        if (userData && userData?.pushTokens?.length > 0 && userData?.settings?.notificationsEnabled !== false) {
+        const userData = doc.data() || {};
+        if (userData.pushTokens && userData.pushTokens.length > 0 && userData.settings?.notificationsEnabled !== false) {
           tokens.push(...userData.pushTokens);
         }
       });
