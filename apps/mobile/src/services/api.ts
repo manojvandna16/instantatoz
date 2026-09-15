@@ -5,7 +5,7 @@
 import { auth } from './firebase';
 
 // Force the app to point to the live Vercel backend so it doesn't fail on a physical device
-const BASE_URL = 'https://instantatoz.online/api/mobile';
+const BASE_URL = 'https://www.instantatoz.online/api/mobile';
 
 export async function callApi(action: string, data: any = {}) {
   const user = auth().currentUser;

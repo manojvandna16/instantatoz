@@ -25,18 +25,18 @@ export const COLLECTIONS = {
 
 // Legal document URLs — all hosted on the website
 export const LEGAL_URLS = {
-  terms: 'https://instantatoz.online/terms-and-conditions',
-  privacy: 'https://instantatoz.online/privacy-policy',
-  userTerms: 'https://instantatoz.online/user-terms',
-  workerTerms: 'https://instantatoz.online/worker-terms',
-  workerVerification: 'https://instantatoz.online/worker-verification-policy',
-  cancellation: 'https://instantatoz.online/cancellation-policy',
-  refund: 'https://instantatoz.online/refund-policy',
-  payment: 'https://instantatoz.online/payment-policy',
-  communityGuidelines: 'https://instantatoz.online/community-guidelines',
-  grievance: 'https://instantatoz.online/grievance-redressal',
-  deleteAccount: 'https://instantatoz.online/delete-account',
-  support: 'https://instantatoz.online/support',
+  terms: 'https://www.instantatoz.online/terms-and-conditions',
+  privacy: 'https://www.instantatoz.online/privacy-policy',
+  userTerms: 'https://www.instantatoz.online/user-terms',
+  workerTerms: 'https://www.instantatoz.online/worker-terms',
+  workerVerification: 'https://www.instantatoz.online/worker-verification-policy',
+  cancellation: 'https://www.instantatoz.online/cancellation-policy',
+  refund: 'https://www.instantatoz.online/refund-policy',
+  payment: 'https://www.instantatoz.online/payment-policy',
+  communityGuidelines: 'https://www.instantatoz.online/community-guidelines',
+  grievance: 'https://www.instantatoz.online/grievance-redressal',
+  deleteAccount: 'https://www.instantatoz.online/delete-account',
+  support: 'https://www.instantatoz.online/support',
 } as const;
 
 // Worker verification statuses (mirror of WorkerStatus enum)
