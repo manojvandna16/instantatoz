@@ -31,11 +31,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Title and body are required' }, { status: 400 });
     }
 
+    const db = adminDb();
+
     // 1. Get tokens
     let tokens: string[] = [];
     if (targetUserId) {
       // Single user
-      const userDoc = await adminDb.collection('users').doc(targetUserId).get();
+      const userDoc = await db.collection('users').doc(targetUserId).get();
       if (userDoc.exists) {
         const userData = userDoc.data();
         if (userData?.pushTokens?.length > 0 && userData?.settings?.notificationsEnabled !== false) {
@@ -44,8 +46,8 @@ export async function POST(request: Request) {
       }
     } else {
       // All users (this is a simplified approach, for large apps use batched queries or topics)
-      const usersSnap = await adminDb.collection('users').get();
-      usersSnap.docs.forEach(doc => {
+      const usersSnap = await db.collection('users').get();
+      usersSnap.docs.forEach((doc: any) => {
         const userData = doc.data();
         if (userData?.pushTokens?.length > 0 && userData?.settings?.notificationsEnabled !== false) {
           tokens.push(...userData.pushTokens);
@@ -59,11 +61,11 @@ export async function POST(request: Request) {
 
     // 2. Send via Expo
     const uniqueTokens = [...new Set(tokens)];
-    const expoPromises = uniqueTokens.map(token => sendExpoPushNotification(token, title, body, data));
+    const expoPromises = uniqueTokens.map((token: string) => sendExpoPushNotification(token, title, body, data));
     await Promise.all(expoPromises);
 
     // 3. Save to Firestore (optional, but good for admin log)
-    await adminDb.collection('notifications').add({
+    await db.collection('notifications').add({
       title,
       body,
       type: type || 'ADMIN_BROADCAST',

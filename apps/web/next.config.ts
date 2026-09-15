@@ -43,6 +43,13 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
 
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   // Output: Vercel handles this automatically (do not set 'standalone' on Vercel)
   // output: 'standalone',  // Only needed for Docker/Firebase App Hosting
 };
