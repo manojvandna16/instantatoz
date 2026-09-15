@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       const usersSnap = await db.collection('users').get();
       usersSnap.docs.forEach((doc: any) => {
         const userData = doc.data();
-        if (userData?.pushTokens?.length > 0 && userData?.settings?.notificationsEnabled !== false) {
+        if (userData && userData?.pushTokens?.length > 0 && userData?.settings?.notificationsEnabled !== false) {
           tokens.push(...userData.pushTokens);
         }
       });
