@@ -37,21 +37,18 @@ export async function POST(request: Request) {
     let tokens: string[] = [];
     if (targetUserId) {
       // Single user
-      const userDoc = await db.collection('users').doc(targetUserId).get();
-      if (userDoc.exists) {
-        const userData = userDoc.data() || {};
-        if (userData.pushTokens && userData.pushTokens.length > 0 && userData.settings?.notificationsEnabled !== false) {
-          tokens = userData.pushTokens;
-        }
-      }
+      const devicesSnap = await db.collection('users').doc(targetUserId).collection('devices').get();
+      devicesSnap.forEach(doc => {
+        const data = doc.data();
+        if (data.expoToken) tokens.push(data.expoToken);
+      });
     } else {
-      // All users (this is a simplified approach, for large apps use batched queries or topics)
-      const usersSnap = await db.collection('users').get();
-      usersSnap.docs.forEach((doc: any) => {
-        const userData = doc.data() || {};
-        if (userData.pushTokens && userData.pushTokens.length > 0 && userData.settings?.notificationsEnabled !== false) {
-          tokens.push(...userData.pushTokens);
-        }
+      // All users (Broadcast) using collectionGroup
+      // Note: In Firestore, collectionGroup('devices') will fetch all subcollections named 'devices'
+      const devicesSnap = await db.collectionGroup('devices').get();
+      devicesSnap.forEach(doc => {
+        const data = doc.data();
+        if (data.expoToken) tokens.push(data.expoToken);
       });
     }
 
