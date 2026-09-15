@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { getFirebaseDb } from '@/lib/firebase';
-import { Bell, Search, Eye, X, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Bell, Search, Eye, X, RefreshCw, CheckCircle2, AlertCircle, Send } from 'lucide-react';
 import { formatDate } from '@/lib/date-utils';
 
 interface Notification {
@@ -25,6 +25,7 @@ const TYPE_STYLES: Record<string, string> = {
   WORKER_ARRIVING: 'bg-purple-500/20 text-purple-400',
   SYSTEM: 'bg-gray-500/20 text-gray-400',
   PROMOTION: 'bg-amber-500/20 text-amber-400',
+  ADMIN_BROADCAST: 'bg-orange-500/20 text-orange-400',
 };
 
 export default function NotificationsPage() {
@@ -33,6 +34,14 @@ export default function NotificationsPage() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [selected, setSelected] = useState<Notification | null>(null);
+
+  // Send Notification State
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [sendLoading, setSendLoading] = useState(false);
+  const [targetUserId, setTargetUserId] = useState('');
+  const [pushTitle, setPushTitle] = useState('');
+  const [pushBody, setPushBody] = useState('');
+  const [pushResult, setPushResult] = useState<{success?: boolean; message?: string} | null>(null);
 
   useEffect(() => {
     const db = getFirebaseDb();
@@ -55,11 +64,54 @@ export default function NotificationsPage() {
 
   const unreadCount = notifs.filter(n => !n.read).length;
 
+  const handleSendPush = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSendLoading(true);
+    setPushResult(null);
+    try {
+      const res = await fetch('/api/send-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetUserId: targetUserId.trim() || null,
+          title: pushTitle,
+          body: pushBody,
+          type: 'ADMIN_BROADCAST'
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send push');
+      
+      setPushResult({ success: true, message: `Successfully sent to ${data.sentCount} devices.` });
+      // Reset form after short delay
+      setTimeout(() => {
+        setShowSendModal(false);
+        setPushTitle('');
+        setPushBody('');
+        setTargetUserId('');
+        setPushResult(null);
+      }, 3000);
+    } catch (err: any) {
+      setPushResult({ success: false, message: err.message });
+    } finally {
+      setSendLoading(false);
+    }
+  };
+
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-bold text-white">Notifications</h1>
-        <p className="text-sm text-gray-400 mt-0.5">{notifs.length} total · {unreadCount} unread</p>
+    <div className="space-y-5 relative">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-white">Notifications</h1>
+          <p className="text-sm text-gray-400 mt-0.5">{notifs.length} total · {unreadCount} unread</p>
+        </div>
+        <button 
+          onClick={() => setShowSendModal(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+        >
+          <Send className="w-4 h-4" />
+          Send Push
+        </button>
       </div>
 
       {/* Summary */}
@@ -168,6 +220,71 @@ export default function NotificationsPage() {
                   ))}
                 </NSection>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Send Push Modal */}
+      {showSendModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white">Send Push Notification</h2>
+              <button onClick={() => setShowSendModal(false)} className="text-gray-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 overflow-y-auto">
+              {pushResult && (
+                <div className={`p-3 rounded-lg mb-4 text-sm ${pushResult.success ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+                  {pushResult.message}
+                </div>
+              )}
+              
+              <form id="push-form" onSubmit={handleSendPush} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Target User ID (Leave blank to broadcast to ALL)</label>
+                  <input 
+                    value={targetUserId} onChange={e => setTargetUserId(e.target.value)} 
+                    placeholder="e.g. user12345..."
+                    className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Title *</label>
+                  <input 
+                    required
+                    value={pushTitle} onChange={e => setPushTitle(e.target.value)} 
+                    placeholder="Notification Title"
+                    className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Message Body *</label>
+                  <textarea 
+                    required rows={3}
+                    value={pushBody} onChange={e => setPushBody(e.target.value)} 
+                    placeholder="Message content..."
+                    className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500" 
+                  />
+                </div>
+              </form>
+            </div>
+            
+            <div className="p-4 border-t border-gray-800 flex justify-end gap-3 bg-gray-950">
+              <button 
+                type="button" onClick={() => setShowSendModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button 
+                form="push-form" type="submit" disabled={sendLoading}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium flex items-center gap-2"
+              >
+                {sendLoading ? 'Sending...' : <><Send className="w-4 h-4" /> Send</>}
+              </button>
             </div>
           </div>
         </div>
