@@ -1,11 +1,11 @@
+import messaging from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import { auth, db } from './firebase';
 import { COLLECTIONS } from '../constants';
 
-// Configure how notifications behave when the app is in foreground
+// Configure how notifications behave when app is in foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -14,57 +14,76 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export async function registerForPushNotificationsAsync() {
-  if (!Device.isDevice) {
-    console.log('Must use physical device for Push Notifications');
-    return null;
-  }
+// Handle background messages (when app is in background or killed)
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  console.log('Background notification:', remoteMessage.notification?.title);
+});
 
-  let token;
+export async function registerForPushNotificationsAsync() {
   try {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    
-    if (finalStatus !== 'granted') {
-      console.log('Failed to get push token for push notification!');
+    // 1. Request permission from user
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    if (!enabled) {
+      console.log('Push notification permission denied');
       return null;
     }
 
-    token = (await Notifications.getExpoPushTokenAsync({
-      projectId: '2535d47a-8f30-4e50-8a75-a6e06b5a2422'
-    })).data;
-    
+    // 2. Get FCM token directly from Firebase (no Expo dashboard needed!)
+    const fcmToken = await messaging().getToken();
+
+    if (!fcmToken) {
+      console.log('Failed to get FCM token');
+      return null;
+    }
+
+    // 3. Set up Android notification channel
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('default', {
         name: 'default',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
+        lightColor: '#1d4ed8',
       });
     }
 
-    // Save token to Firestore if user is logged in
+    // 4. Save FCM token to Firestore under user's devices subcollection
     const user = auth().currentUser;
-    if (user && token) {
+    if (user && fcmToken) {
       await db.collection(COLLECTIONS.USERS)
         .doc(user.uid)
         .collection('devices')
-        .doc(token) // use token string as doc ID
+        .doc(fcmToken)
         .set({
-          expoToken: token,
+          fcmToken,
           platform: Platform.OS,
           updatedAt: firestore.Timestamp.now(),
         });
+      console.log('FCM token saved to Firestore:', fcmToken.substring(0, 20) + '...');
     }
 
-    return token;
+    return fcmToken;
   } catch (e) {
     console.log('Push notification registration error:', e);
     return null;
   }
+}
+
+// Listen for foreground messages
+export function setupForegroundNotificationListener() {
+  return messaging().onMessage(async remoteMessage => {
+    console.log('Foreground notification:', remoteMessage.notification?.title);
+    // Show the notification using expo-notifications when app is open
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: remoteMessage.notification?.title || '',
+        body: remoteMessage.notification?.body || '',
+        data: remoteMessage.data || {},
+      },
+      trigger: null, // show immediately
+    });
+  });
 }

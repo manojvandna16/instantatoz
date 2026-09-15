@@ -22,7 +22,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '../src/hooks/useAuth';
 import { LoadingScreen } from '../src/components/ui/LoadingScreen';
-import { registerForPushNotificationsAsync } from '../src/services/notifications.service';
+import { registerForPushNotificationsAsync, setupForegroundNotificationListener } from '../src/services/notifications.service';
 
 // Catch any errors thrown by the Layout component.
 export { ErrorBoundary } from 'expo-router';
@@ -38,6 +38,12 @@ function NavigationGuard() {
   const { uid, userProfile, isAuthChecked, isLoading } = useAuth();
   const router = useRouter();
   const segments = useSegments();
+
+  useEffect(() => {
+    // Set up foreground notification listener always
+    const unsubscribe = setupForegroundNotificationListener();
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     if (uid) {

@@ -1,27 +1,6 @@
 import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
-
-// Reusing the Expo Push logic
-async function sendExpoPushNotification(token: string, title: string, body: string, data: any = {}) {
-  const message = {
-    to: token,
-    sound: 'default',
-    title,
-    body,
-    data,
-  };
-
-  const response = await fetch('https://exp.host/--/api/v2/push/send', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Accept-encoding': 'gzip, deflate',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(message),
-  });
-  return response.json();
-}
+import { adminDb, getAdminApp } from '@/lib/firebase-admin';
+import { getMessaging } from 'firebase-admin/messaging';
 
 export async function POST(request: Request) {
   try {
@@ -33,35 +12,60 @@ export async function POST(request: Request) {
 
     const db = adminDb();
 
-    // 1. Get tokens
+    // 1. Collect FCM tokens from devices subcollection
     let tokens: string[] = [];
     if (targetUserId) {
       // Single user
       const devicesSnap = await db.collection('users').doc(targetUserId).collection('devices').get();
       devicesSnap.forEach(doc => {
-        const data = doc.data();
-        if (data.expoToken) tokens.push(data.expoToken);
+        const d = doc.data();
+        if (d.fcmToken) tokens.push(d.fcmToken);
       });
     } else {
-      // All users (Broadcast) using collectionGroup
-      // Note: In Firestore, collectionGroup('devices') will fetch all subcollections named 'devices'
+      // Broadcast to all users
       const devicesSnap = await db.collectionGroup('devices').get();
       devicesSnap.forEach(doc => {
-        const data = doc.data();
-        if (data.expoToken) tokens.push(data.expoToken);
+        const d = doc.data();
+        if (d.fcmToken) tokens.push(d.fcmToken);
       });
     }
 
     if (tokens.length === 0) {
-      return NextResponse.json({ success: true, sentCount: 0, message: 'No valid push tokens found for target' });
+      return NextResponse.json({ success: true, sentCount: 0, message: 'No registered devices found. Please open the app first to register.' });
     }
 
-    // 2. Send via Expo
+    // 2. Send via Firebase Admin SDK (FCM) - no Expo dependency!
     const uniqueTokens = [...new Set(tokens)];
-    const expoPromises = uniqueTokens.map((token: string) => sendExpoPushNotification(token, title, body, data));
-    await Promise.all(expoPromises);
+    const messaging = getMessaging(getAdminApp());
 
-    // 3. Save to Firestore (optional, but good for admin log)
+    const sendPromises = uniqueTokens.map(token =>
+      messaging.send({
+        token,
+        notification: {
+          title,
+          body,
+        },
+        data: {
+          type: type || 'ADMIN_BROADCAST',
+          ...(data || {}),
+        },
+        android: {
+          priority: 'high',
+          notification: {
+            sound: 'default',
+            channelId: 'default',
+          },
+        },
+      }).catch(err => {
+        console.error('Failed to send to token:', token.substring(0, 20), err.message);
+        return null;
+      })
+    );
+
+    const results = await Promise.all(sendPromises);
+    const sentCount = results.filter(r => r !== null).length;
+
+    // 3. Save to Firestore notifications log
     await db.collection('notifications').add({
       title,
       body,
@@ -69,10 +73,11 @@ export async function POST(request: Request) {
       userId: targetUserId || 'ALL_USERS',
       data: data || {},
       read: false,
-      createdAt: new Date().toISOString()
+      sentCount,
+      createdAt: new Date().toISOString(),
     });
 
-    return NextResponse.json({ success: true, sentCount: uniqueTokens.length });
+    return NextResponse.json({ success: true, sentCount });
   } catch (error: any) {
     console.error('Error sending push notification:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
