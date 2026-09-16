@@ -4,6 +4,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from 'firebase/auth';
 import { getFirebaseAuth, getFirebaseDb } from './firebase';
+import { isAdminRole } from './roles';
 import type { AdminUser } from '@/types';
 
 interface AuthContextType {
@@ -36,12 +37,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const idTokenResult = await firebaseUser.getIdTokenResult();
           const claims = idTokenResult.claims;
-          if (claims.admin === true) {
-            const role = (claims.role as AdminUser['role']) || 'SUPER_ADMIN';
+          if (claims.admin === true && isAdminRole(claims.role)) {
             setAdminUser({
               uid: firebaseUser.uid,
               email: firebaseUser.email || '',
-              role,
+              role: claims.role,
               name: firebaseUser.displayName || 'Admin',
               createdAt: new Date().toISOString(),
               active: true,
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await cred.user.getIdTokenResult(true);
     const idTokenResult = await cred.user.getIdTokenResult();
     const claims = idTokenResult.claims;
-    if (claims.admin !== true) {
+    if (claims.admin !== true || !isAdminRole(claims.role)) {
       await signOut(firebaseAuth);
       throw new Error('Access denied. This account is not authorized as an admin.');
     }

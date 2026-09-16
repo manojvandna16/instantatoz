@@ -2,8 +2,7 @@
 // Next.js 16 uses proxy.ts with exported function named "proxy" or "default"
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from './lib/firebase-admin';
-import { hasPermission } from './lib/roles';
-import { AdminRole } from './types';
+import { hasPermission, isAdminRole } from './lib/roles';
 
 const SESSION_COOKIE_NAME = 'admin-session';
 
@@ -49,11 +48,11 @@ export async function proxy(request: NextRequest) {
 
   try {
     const decoded = await adminAuth().verifySessionCookie(sessionCookie.value, true);
-    if (decoded.admin !== true) {
+    if (decoded.admin !== true || !isAdminRole(decoded.role)) {
       return NextResponse.redirect(new URL('/', request.url));
     }
 
-    const role = (decoded.role as AdminRole) || 'SUPER_ADMIN';
+    const role = decoded.role;
     const requiredPermission = getRequiredPermission(pathname);
     if (requiredPermission && !hasPermission(role, requiredPermission)) {
       return NextResponse.redirect(new URL('/', request.url));

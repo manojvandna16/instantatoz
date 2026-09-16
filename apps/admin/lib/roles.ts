@@ -1,13 +1,28 @@
 // lib/roles.ts — Role-Based Access Control helpers
 import type { AdminRole } from '@/types';
 
+export const VALID_ADMIN_ROLES: AdminRole[] = [
+  'SUPER_ADMIN',
+  'OPERATIONS_ADMIN',
+  'WORKER_MANAGER',
+  'JOB_MANAGER',
+  'FINANCE_ADMIN',
+  'SUPPORT_ADMIN',
+  'CONTENT_ADMIN',
+  'ANALYTICS_VIEWER',
+];
+
+export function isAdminRole(role: unknown): role is AdminRole {
+  return typeof role === 'string' && (VALID_ADMIN_ROLES as string[]).includes(role);
+}
+
 export const ROLE_PERMISSIONS: Record<AdminRole, string[]> = {
   SUPER_ADMIN: ['*'],
-  OPERATIONS_ADMIN: ['workers', 'jobs', 'matching', 'live-operations', 'locations', 'service-areas'],
+  OPERATIONS_ADMIN: ['workers', 'jobs', 'matching', 'live-operations', 'locations', 'service-areas', 'notifications'],
   WORKER_MANAGER: ['workers', 'workers.verification', 'workers.documents', 'categories'],
   JOB_MANAGER: ['jobs', 'jobs.requests', 'jobs.live', 'disputes'],
   FINANCE_ADMIN: ['payments', 'refunds', 'commission', 'payouts', 'reports.financial'],
-  SUPPORT_ADMIN: ['support', 'complaints', 'disputes', 'contacts'],
+  SUPPORT_ADMIN: ['support', 'complaints', 'disputes', 'contacts', 'notifications'],
   CONTENT_ADMIN: ['categories', 'content', 'legal', 'faq'],
   ANALYTICS_VIEWER: ['analytics', 'reports'],
 };
