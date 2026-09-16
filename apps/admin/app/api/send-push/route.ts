@@ -1,10 +1,23 @@
 import { NextResponse } from 'next/server';
 import { adminDb, getAdminApp } from '@/lib/firebase-admin';
 import { getMessaging } from 'firebase-admin/messaging';
+import { verifyAdmin } from '@/lib/verify-admin';
 
 export async function POST(request: Request) {
   try {
-    const { targetUserId, title, body, type, data } = await request.json();
+    const claims = await verifyAdmin('notifications');
+    if (!claims) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { targetUserId, targetUserType, title, body, type, data, imageUrl, link } = await request.json();
+
+    if (!targetUserId && !targetUserType) {
+      const role = claims.role;
+      if (role !== 'SUPER_ADMIN' && role !== 'OPERATIONS_ADMIN') {
+        return NextResponse.json({ error: 'Forbidden: broadcast requires elevated role' }, { status: 403 });
+      }
+    }
 
     if (!title || !body) {
       return NextResponse.json({ error: 'Title and body are required' }, { status: 400 });
@@ -14,6 +27,23 @@ export async function POST(request: Request) {
 
     // 1. Collect FCM tokens from devices subcollection
     let tokens: string[] = [];
+    let targetUids: Set<string> | null = null;
+
+    // Determine which user UIDs to target
+    if (targetUserType && !targetUserId) {
+      // Filter by user type (customer vs worker)
+      targetUids = new Set<string>();
+      if (targetUserType === 'customer') {
+        const usersSnap = await db.collection('users')
+          .where('activeMode', '==', 'customer')
+          .get();
+        usersSnap.forEach(doc => targetUids!.add(doc.id));
+      } else if (targetUserType === 'worker') {
+        const workersSnap = await db.collection('workers').get();
+        workersSnap.forEach(doc => targetUids!.add(doc.id));
+      }
+    }
+
     if (targetUserId) {
       // Single user
       const devicesSnap = await db.collection('users').doc(targetUserId).collection('devices').get();
@@ -21,6 +51,15 @@ export async function POST(request: Request) {
         const d = doc.data();
         if (d.fcmToken) tokens.push(d.fcmToken);
       });
+    } else if (targetUids) {
+      // Filtered broadcast by user type (queries users/workers then devices)
+      for (const uid of targetUids) {
+        const devicesSnap = await db.collection('users').doc(uid).collection('devices').get();
+        devicesSnap.forEach(doc => {
+          const d = doc.data();
+          if (d.fcmToken) tokens.push(d.fcmToken);
+        });
+      }
     } else {
       // Broadcast to all users
       const devicesSnap = await db.collectionGroup('devices').get();
@@ -44,9 +83,11 @@ export async function POST(request: Request) {
         notification: {
           title,
           body,
+          ...(imageUrl && { image: imageUrl }),
         },
         data: {
           type: type || 'ADMIN_BROADCAST',
+          ...(link && { link }),
           ...(data || {}),
         },
         android: {
@@ -54,8 +95,16 @@ export async function POST(request: Request) {
           notification: {
             sound: 'default',
             channelId: 'default',
+            ...(imageUrl && { imageUrl }),
           },
         },
+        ...(link && {
+          webpush: {
+            fcmOptions: {
+              link,
+            },
+          },
+        }),
       }).catch(err => {
         console.error('Failed to send to token:', token.substring(0, 20), err.message);
         return null;
@@ -70,8 +119,11 @@ export async function POST(request: Request) {
       title,
       body,
       type: type || 'ADMIN_BROADCAST',
-      userId: targetUserId || 'ALL_USERS',
+      userId: targetUserId || targetUserType ? `FILTERED:${targetUserType || targetUserId}` : 'ALL_USERS',
+      userType: targetUserType || null,
       data: data || {},
+      imageUrl: imageUrl || null,
+      link: link || null,
       read: false,
       sentCount,
       createdAt: new Date().toISOString(),
