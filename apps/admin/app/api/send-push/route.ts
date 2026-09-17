@@ -59,18 +59,27 @@ export async function POST(request: Request) {
       });
     } else if (targetUids) {
       // Filtered broadcast by user type (look up devices under each UID in users and workers collections)
-      for (const uid of targetUids) {
-        const devicesSnap = await db.collection('users').doc(uid).collection('devices').get();
-        devicesSnap.forEach(doc => {
-          const d = doc.data();
-          if (d.fcmToken) tokens.push(d.fcmToken);
-        });
-        const workerDevicesSnap = await db.collection('workers').doc(uid).collection('devices').get();
-        workerDevicesSnap.forEach(doc => {
-          const d = doc.data();
-          if (d.fcmToken) tokens.push(d.fcmToken);
-        });
-      }
+      const uidsArray = Array.from(targetUids);
+      const batchPromises = uidsArray.map(async (uid) => {
+        try {
+          const [devicesSnap, workerDevicesSnap] = await Promise.all([
+            db.collection('users').doc(uid).collection('devices').get(),
+            db.collection('workers').doc(uid).collection('devices').get()
+          ]);
+          
+          devicesSnap.forEach(doc => {
+            if (doc.data().fcmToken) tokens.push(doc.data().fcmToken);
+          });
+          workerDevicesSnap.forEach(doc => {
+            if (doc.data().fcmToken) tokens.push(doc.data().fcmToken);
+          });
+        } catch (err) {
+          console.error(`Failed to fetch devices for uid ${uid}`, err);
+        }
+      });
+      
+      // Execute all device fetches concurrently
+      await Promise.all(batchPromises);
     } else {
       // Broadcast to all users
       const devicesSnap = await db.collectionGroup('devices').get();
