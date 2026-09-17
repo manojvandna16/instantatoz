@@ -10,6 +10,8 @@ import firestore from '@react-native-firebase/firestore';
 import { useAuthStore } from '../../src/store/authStore';
 import { auth, db } from '../../src/services/firebase';
 import { listenPendingJobs, acceptJob, Job } from '../../src/services/job.service';
+import { listenNotifications, AppNotification } from '../../src/services/notifications.service';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, COLLECTIONS } from '../../src/constants';
 
 export default function WorkerDashboard() {
@@ -18,6 +20,7 @@ export default function WorkerDashboard() {
   const [pendingJobs, setPendingJobs] = useState<Job[]>([]);
   const [loadingToggle, setLoadingToggle] = useState(false);
   const [acceptingJob, setAcceptingJob] = useState<string | null>(null);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
 
   useEffect(() => {
     if (!workerProfile?.category || !workerProfile.isOnline) {
@@ -31,7 +34,16 @@ export default function WorkerDashboard() {
       );
       setPendingJobs(genuineActiveJobs);
     });
-    return () => unsubscribe();
+
+    const unsubNotifs = listenNotifications(workerProfile.uid, 'worker', (notifs) => {
+      const count = notifs.filter(n => !n.read && n.userId !== 'ALL_USERS' && !n.userId.startsWith('FILTERED:')).length;
+      setUnreadNotifs(count);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubNotifs();
+    };
   }, [workerProfile?.category, workerProfile?.isOnline]);
 
   async function handleToggleOnline() {
@@ -87,11 +99,21 @@ export default function WorkerDashboard() {
             <Text style={styles.badgeText}>{workerProfile.category}</Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => router.push('/(shared)/profile')}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{workerProfile.name[0]}</Text>
-          </View>
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.bellBtn} onPress={() => router.push('/(worker)/notifications' as any)}>
+            <Ionicons name="notifications-outline" size={24} color={COLORS.white} />
+            {unreadNotifs > 0 && (
+              <View style={styles.badgeCount}>
+                <Text style={styles.badgeCountText}>{unreadNotifs}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/(shared)/profile')}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{workerProfile.name[0]}</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -191,6 +213,10 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 20, fontWeight: '700', color: '#fff' },
   badge: { backgroundColor: COLORS.primary + '30', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start', marginTop: 4 },
   badgeText: { color: COLORS.primaryLight, fontSize: 11, fontWeight: '700' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  bellBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#374151', alignItems: 'center', justifyContent: 'center' },
+  badgeCount: { position: 'absolute', top: -2, right: -2, backgroundColor: COLORS.danger, borderRadius: 10, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#1f2937' },
+  badgeCountText: { color: COLORS.white, fontSize: 10, fontWeight: 'bold' },
   avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
   avatarText: { color: '#fff', fontSize: 18, fontWeight: '700' },
   scroll: { padding: 20, paddingBottom: 40 },

@@ -39,23 +39,34 @@ export async function POST(request: Request) {
           .get();
         usersSnap.forEach(doc => targetUids!.add(doc.id));
       } else if (targetUserType === 'worker') {
+        // Workers are stored in 'workers' collection — get their UIDs
         const workersSnap = await db.collection('workers').get();
         workersSnap.forEach(doc => targetUids!.add(doc.id));
       }
     }
 
     if (targetUserId) {
-      // Single user
+      // Single user — check both users and workers collection for their device token
       const devicesSnap = await db.collection('users').doc(targetUserId).collection('devices').get();
       devicesSnap.forEach(doc => {
         const d = doc.data();
         if (d.fcmToken) tokens.push(d.fcmToken);
       });
+      const workerDevicesSnap = await db.collection('workers').doc(targetUserId).collection('devices').get();
+      workerDevicesSnap.forEach(doc => {
+        const d = doc.data();
+        if (d.fcmToken) tokens.push(d.fcmToken);
+      });
     } else if (targetUids) {
-      // Filtered broadcast by user type (queries users/workers then devices)
+      // Filtered broadcast by user type (look up devices under each UID in users and workers collections)
       for (const uid of targetUids) {
         const devicesSnap = await db.collection('users').doc(uid).collection('devices').get();
         devicesSnap.forEach(doc => {
+          const d = doc.data();
+          if (d.fcmToken) tokens.push(d.fcmToken);
+        });
+        const workerDevicesSnap = await db.collection('workers').doc(uid).collection('devices').get();
+        workerDevicesSnap.forEach(doc => {
           const d = doc.data();
           if (d.fcmToken) tokens.push(d.fcmToken);
         });
@@ -73,7 +84,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, sentCount: 0, message: 'No registered devices found. Please open the app first to register.' });
     }
 
-    // 2. Send via Firebase Admin SDK (FCM) - no Expo dependency!
+    // 2. Send via Firebase Admin SDK (FCM)
     const uniqueTokens = [...new Set(tokens)];
     const messaging = getMessaging(getAdminApp());
 
@@ -88,7 +99,7 @@ export async function POST(request: Request) {
         data: {
           type: type || 'ADMIN_BROADCAST',
           ...(link && { link }),
-          ...(data || {}),
+          ...(data ? Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)])) : {}),
         },
         android: {
           priority: 'high',
@@ -113,23 +124,41 @@ export async function POST(request: Request) {
 
     const results = await Promise.all(sendPromises);
     const sentCount = results.filter(r => r !== null).length;
+    const failedCount = results.filter(r => r === null).length;
 
     // 3. Save to Firestore notifications log
+    // FIX: Correct userId logic — operator precedence was wrong before
+    let notifUserId: string;
+    if (targetUserId) {
+      notifUserId = targetUserId;
+    } else if (targetUserType) {
+      notifUserId = `FILTERED:${targetUserType}`;
+    } else {
+      notifUserId = 'ALL_USERS';
+    }
+
+    // FIX: Use Firestore server timestamp so mobile can call .toDate() on it
+    const { FieldValue } = await import('firebase-admin/firestore');
     await db.collection('notifications').add({
       title,
       body,
       type: type || 'ADMIN_BROADCAST',
-      userId: targetUserId || targetUserType ? `FILTERED:${targetUserType || targetUserId}` : 'ALL_USERS',
+      userId: notifUserId,
       userType: targetUserType || null,
       data: data || {},
       imageUrl: imageUrl || null,
       link: link || null,
       read: false,
       sentCount,
-      createdAt: new Date().toISOString(),
+      failedCount,
+      createdAt: FieldValue.serverTimestamp(),
     });
 
-    return NextResponse.json({ success: true, sentCount });
+    let message = `Successfully sent to ${sentCount} devices.`;
+    if (failedCount > 0) message += ` Failed to send to ${failedCount} devices (tokens might be invalid/expired).`;
+    if (sentCount === 0 && failedCount === 0) message = 'No registered devices found for the target audience.';
+
+    return NextResponse.json({ success: true, sentCount, message });
   } catch (error: any) {
     console.error('Error sending push notification:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
+import { verifyIdToken } from '@/lib/firebase-admin';
+
+async function requireUser(request: NextRequest) {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  try {
+    return await verifyIdToken(authHeader.slice('Bearer '.length));
+  } catch {
+    return null;
+  }
+}
 
 // ⚠️ Initialized inside handler (not at module level) so env vars are
 // available at runtime on Vercel, not just during local builds.
@@ -12,6 +23,11 @@ function getRazorpay() {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await requireUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { amount, currency = 'INR', receipt, notes } = body;
 

@@ -1,22 +1,9 @@
 import { NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
-import { cookies } from 'next/headers';
+import { adminDb } from '@/lib/firebase-admin';
+import { verifyAdmin } from '@/lib/verify-admin';
 
 // GET: Fetch commission config
 // POST: Update commission config (FINANCE_ADMIN or SUPER_ADMIN only)
-
-async function verifyAdmin(requiredFinance = false) {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get('admin-session')?.value;
-  if (!sessionCookie) return null;
-  try {
-    const claims = await adminAuth().verifySessionCookie(sessionCookie, true);
-    if (!claims.admin) return null;
-    return claims;
-  } catch {
-    return null;
-  }
-}
 
 export async function GET() {
   const claims = await verifyAdmin();

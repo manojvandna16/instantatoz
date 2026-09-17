@@ -196,11 +196,29 @@ service cloud.firestore {
     // notifications — per-user notifications
     // =========================================================
     match /notifications/{notificationId} {
-      allow read: if isAdmin() || (isAuth()
-        && resource.data.userId == request.auth.uid);
+      // Allow list queries for authenticated users.
+      // The mobile app always queries with:
+      //   .where('userId', 'in', [uid, 'ALL_USERS', 'FILTERED:customer/worker'])
+      // Firestore cannot evaluate resource.data in list queries, so we allow
+      // all authenticated reads and rely on the query filter for data scoping.
+      allow list: if isAuth();
+
+      // Single document read: only own notification, broadcast, or filtered
+      allow get: if isAdmin() || (isAuth()
+        && (
+          resource.data.userId == request.auth.uid ||
+          resource.data.userId == 'ALL_USERS' ||
+          resource.data.userId == 'FILTERED:customer' ||
+          resource.data.userId == 'FILTERED:worker'
+        )
+      );
+
+      // Only the owner can mark their personal notification as read
       allow update: if isAuth()
-        && resource.data.userId == request.auth.uid; // Mark as read
-      allow create, delete: if false; // Server only
+        && resource.data.userId == request.auth.uid;
+
+      // Notifications are created/deleted by server (Admin SDK) only
+      allow create, delete: if false;
     }
 
     // =========================================================

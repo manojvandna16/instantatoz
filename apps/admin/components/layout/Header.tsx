@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Bell, Search, LogOut, MapPin } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import type { AdminUser } from '@/types';
@@ -36,10 +37,10 @@ export default function Header({ adminUser }: { adminUser: AdminUser }) {
         </div>
 
         {/* Notifications */}
-        <button className="relative p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+        <Link href="/dashboard/notifications" className="relative p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
           <Bell className="w-4.5 h-4.5" />
           <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
-        </button>
+        </Link>
 
         {/* Logout */}
         <button

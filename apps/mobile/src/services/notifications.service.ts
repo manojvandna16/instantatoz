@@ -42,7 +42,12 @@ messaging().getInitialNotification().then(remoteMessage => {
   }
 });
 
-export async function registerForPushNotificationsAsync() {
+/**
+ * Register FCM token and save to Firestore under users/{uid}/devices.
+ * Also saves userType so admin can target by 'customer' | 'worker'.
+ * Pass userType explicitly when known (e.g. after login) to avoid an extra DB read.
+ */
+export async function registerForPushNotificationsAsync(userType?: 'customer' | 'worker') {
   try {
     // 1. Request permission from user
     const authStatus = await messaging().requestPermission();
@@ -55,7 +60,7 @@ export async function registerForPushNotificationsAsync() {
       return null;
     }
 
-    // 2. Get FCM token directly from Firebase (no Expo dashboard needed!)
+    // 2. Get FCM token directly from Firebase
     const fcmToken = await messaging().getToken();
 
     if (!fcmToken) {
@@ -73,23 +78,27 @@ export async function registerForPushNotificationsAsync() {
       });
     }
 
-    // 4. Save FCM token to Firestore under user's devices subcollection
+    // 4. Save token to Firestore with correct userType
     const user = auth().currentUser;
     if (user && fcmToken) {
-      // Determine user type for admin targeting
-      const userType = user?.uid ? await determineUserType(user.uid) : 'customer';
+      const resolvedType = userType || (await determineUserType(user.uid));
+
       await db
         .collection(COLLECTIONS.USERS)
         .doc(user.uid)
         .collection('devices')
         .doc(fcmToken)
-        .set({
-          fcmToken,
-          platform: Platform.OS,
-          userType,
-          updatedAt: firestore.Timestamp.now(),
-        });
-      console.log('FCM token saved to Firestore:', fcmToken.substring(0, 20) + '...');
+        .set(
+          {
+            fcmToken,
+            platform: Platform.OS,
+            userType: resolvedType,
+            updatedAt: firestore.Timestamp.now(),
+          },
+          { merge: true }
+        );
+
+      console.log(`FCM token saved [${resolvedType}]:`, fcmToken.substring(0, 20) + '...');
     }
 
     return fcmToken;
@@ -100,7 +109,7 @@ export async function registerForPushNotificationsAsync() {
 }
 
 /**
- * Determines whether the current user is a customer or worker
+ * Determines whether the current user is a customer or worker by checking Firestore.
  */
 async function determineUserType(uid: string): Promise<'customer' | 'worker'> {
   try {
@@ -117,26 +126,105 @@ async function determineUserType(uid: string): Promise<'customer' | 'worker'> {
   }
 }
 
-// Listen for foreground messages
+/**
+ * Listen for foreground FCM messages and display them as local notifications.
+ */
 export function setupForegroundNotificationListener() {
   return messaging().onMessage(async remoteMessage => {
     console.log('Foreground notification:', remoteMessage.notification?.title);
-    // Show the notification using expo-notifications when app is open
-    const imageUrl = (remoteMessage as any).notification?.image;
     await Notifications.scheduleNotificationAsync({
       content: {
         title: remoteMessage.notification?.title || '',
         body: remoteMessage.notification?.body || '',
         data: remoteMessage.data || {},
-        ...(imageUrl && {
-          attachments: [{
-            identifier: 'image',
-            url: imageUrl,
-            type: 'image',
-          }],
-        }),
       },
       trigger: null, // show immediately
     });
   });
+}
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  userId: string;
+  read: boolean;
+  createdAt: any;
+  data?: Record<string, any>;
+}
+
+/**
+ * Real-time listener for a user's notifications.
+ * Includes personal (uid), broadcast (ALL_USERS), and filtered (FILTERED:customer/worker).
+ */
+export function listenNotifications(
+  uid: string,
+  userType: 'customer' | 'worker',
+  callback: (notifications: AppNotification[]) => void,
+  onError?: (error: Error) => void
+) {
+  // Removed .orderBy('createdAt', 'desc') to avoid requiring a composite index.
+  // We'll sort the results client-side instead.
+  const q = db
+    .collection('notifications')
+    .where('userId', 'in', [uid, 'ALL_USERS', `FILTERED:${userType}`])
+    .limit(50);
+
+  return q.onSnapshot(
+    snapshot => {
+      if (!snapshot) return;
+      const notifications = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as AppNotification[];
+      
+      // Sort client-side
+      notifications.sort((a, b) => {
+        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (new Date(a.createdAt || 0)).getTime();
+        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (new Date(b.createdAt || 0)).getTime();
+        return timeB - timeA; // descending
+      });
+      
+      callback(notifications);
+    },
+    error => {
+      console.error('Error listening to notifications:', error);
+      if (onError) onError(error);
+    }
+  );
+}
+
+/**
+ * Mark a personal notification as read.
+ * Broadcast notifications (ALL_USERS / FILTERED:*) cannot be individually marked.
+ */
+export async function markNotificationAsRead(notificationId: string) {
+  try {
+    await db.collection('notifications').doc(notificationId).update({ read: true });
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+  }
+}
+
+/**
+ * Save an in-app notification to Firestore for job lifecycle events
+ * (e.g. job accepted, worker arrived) when no backend push is triggered.
+ */
+export async function saveLocalNotification(params: {
+  userId: string;
+  title: string;
+  body: string;
+  type: string;
+  data?: Record<string, any>;
+}) {
+  try {
+    await db.collection('notifications').add({
+      ...params,
+      read: false,
+      createdAt: firestore.Timestamp.now(),
+    });
+  } catch (error) {
+    console.error('Error saving local notification:', error);
+  }
 }

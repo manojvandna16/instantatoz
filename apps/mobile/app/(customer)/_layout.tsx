@@ -53,6 +53,12 @@ export default function CustomerLayout() {
         }}
       />
       <Tabs.Screen
+        name="notifications"
+        options={{
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🔔" label="Alerts" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="job-detail"
         options={{
           href: null,

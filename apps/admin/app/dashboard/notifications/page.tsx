@@ -59,13 +59,29 @@ export default function NotificationsPage() {
     return unsub;
   }, []);
 
+  const [audienceFilter, setAudienceFilter] = useState('ALL');
+
   const types = [...new Set(notifs.map(n => n.type).filter(Boolean))];
 
   const filtered = notifs.filter(n => {
     const q = search.toLowerCase();
     const searchOk = !q || n.title?.toLowerCase().includes(q) || n.body?.toLowerCase().includes(q) || n.userId?.includes(q);
     const typeOk = typeFilter === 'ALL' || n.type === typeFilter;
-    return searchOk && typeOk;
+    
+    let audienceOk = true;
+    if (audienceFilter !== 'ALL') {
+      if (audienceFilter === 'broadcast_all') {
+        audienceOk = n.userId === 'ALL_USERS';
+      } else if (audienceFilter === 'worker') {
+        audienceOk = n.userId === 'FILTERED:worker' || n.userType === 'worker';
+      } else if (audienceFilter === 'customer') {
+        audienceOk = n.userId === 'FILTERED:customer' || n.userType === 'customer';
+      } else if (audienceFilter === 'single') {
+        audienceOk = n.userId !== 'ALL_USERS' && !n.userId?.startsWith('FILTERED:');
+      }
+    }
+    
+    return searchOk && typeOk && audienceOk;
   });
 
   const unreadCount = notifs.filter(n => !n.read).length;
@@ -149,9 +165,17 @@ export default function NotificationsPage() {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search title, body, user ID..."
             className="w-full bg-gray-900 border border-gray-800 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500" />
         </div>
+        <select value={audienceFilter} onChange={e => setAudienceFilter(e.target.value)}
+          className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+          <option value="ALL">All Audiences</option>
+          <option value="broadcast_all">Broadcast (All Users)</option>
+          <option value="worker">Workers</option>
+          <option value="customer">Customers</option>
+          <option value="single">Single Users</option>
+        </select>
         <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
           className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
-          <option value="ALL">All Types</option>
+          <option value="ALL">All Event Types</option>
           {types.map(t => <option key={t} value={t!}>{t!.replace(/_/g, ' ')}</option>)}
         </select>
       </div>
@@ -162,7 +186,7 @@ export default function NotificationsPage() {
           <table className="w-full text-sm">
             <thead className="border-b border-gray-800">
               <tr className="text-xs text-gray-500 uppercase tracking-wider">
-                {['Title', 'Body', 'Type', 'Read', 'Date', 'Detail'].map(h => (
+                {['Title', 'Body', 'Type', 'Audience', 'Read', 'Date', 'Detail'].map(h => (
                   <th key={h} className="text-left px-4 py-3">{h}</th>
                 ))}
               </tr>
@@ -181,6 +205,17 @@ export default function NotificationsPage() {
                   <td className="px-4 py-3 text-gray-400 max-w-[200px] truncate text-xs">{n.body || '—'}</td>
                   <td className="px-4 py-3">
                     {n.type && <span className={`text-xs px-2 py-0.5 rounded-full ${TYPE_STYLES[n.type] || 'bg-gray-500/20 text-gray-400'}`}>{n.type.replace(/_/g, ' ')}</span>}
+                  </td>
+                  <td className="px-4 py-3">
+                    {n.userId === 'ALL_USERS' ? (
+                      <span className="text-xs text-purple-400 bg-purple-500/10 px-2 py-1 rounded">All</span>
+                    ) : n.userId === 'FILTERED:worker' || n.userType === 'worker' ? (
+                      <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded">Worker</span>
+                    ) : n.userId === 'FILTERED:customer' || n.userType === 'customer' ? (
+                      <span className="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded">Customer</span>
+                    ) : (
+                      <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded truncate max-w-[80px] inline-block">{n.userId}</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     {n.read ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <AlertCircle className="w-4 h-4 text-blue-400" />}

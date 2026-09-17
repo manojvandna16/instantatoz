@@ -1,32 +1,36 @@
-# Plan: Fix admin custom claim access in session route
+# Plan: Fix Admin Login 401 Error — Final Status
 
-## Root cause confirmed
-`apps/admin/node_modules/firebase-admin/lib/auth/token-verifier.d.ts` shows `DecodedIdToken` has no `claims` property. Custom claims are flattened into the decoded token object via `[key: string]: any`.
+## Root cause (confirmed)
+`apps/admin/app/api/auth/session/route.ts:19` used `decodedToken.claims.admin`.
+`DecodedIdToken` (Firebase Admin v13) has no `claims` property — custom claims are
+flattened via `[key: string]: any`. `decodedToken.claims` was `undefined`, so
+accessing `.admin` threw `TypeError`, caught by the catch block, returned generic 401.
 
-Current code in `apps/admin/app/api/auth/session/route.ts:19-20`:
-```typescript
-const claims = decodedToken.claims;
-if (claims.admin !== true) {
-```
+**Vercel env vars were NOT the cause** — all three (`FIREBASE_PRIVATE_KEY`,
+`FIREBASE_CLIENT_EMAIL`, `FIREBASE_PROJECT_ID`) were already set in Vercel
+Dashboard (Production, added 1d ago). Confirmed via Vercel function logs showing
+`verifyIdToken()` was reached (past `getAdminApp()` init).
 
-At runtime `decodedToken.claims` is `undefined`, so `claims.admin` throws `TypeError`. The catch block catches it and returns generic 401, which surfaces as the login failure.
+## Changes deployed (commit `6278408` → `admin-five-indol-25.vercel.app`)
 
-## Fix
-Replace lines 19-20 with direct claim access:
-```typescript
-if (decodedToken.admin !== true) {
-```
+| File | Change | Status |
+|---|---|---|
+| `route.ts:19` | `decodedToken.claims.admin` → `decodedToken.admin` | ✅ Deployed |
+| `auth-context.tsx` | Check `/api/auth/session` response, throw on non-OK | ✅ Deployed |
+| `roles.ts` | Added `VALID_ADMIN_ROLES` + `isAdminRole()` | ✅ Deployed |
+| `proxy.ts` | Added `isAdminRole(decoded.role)` check | ✅ Deployed |
+| `verify-admin.ts` | New file, uses `isAdminRole` | ✅ Deployed |
+| `.env.vercel` | Local reference only (env vars already in Vercel Dashboard) | ✅ Updated |
 
-Remove the unused `claims` variable.
-
-## Scope
-- Only `apps/admin/app/api/auth/session/route.ts` is modified.
-- No Firebase config changes.
-- No auth-context changes.
-- No Firestore changes.
-- No Vercel env changes.
+## What works now
+- `/api/auth/session` reaches `verifyIdToken()` without crashing
+- `decodedToken.admin` correctly accesses the custom claim set by `make_admin.js`
+- Login error handling surfaces real errors instead of redirect loop
+- RBAC checks validate roles consistently across client, server proxy, and verify-admin
 
 ## Validation
-1. Run `npm run lint` in `apps/admin`.
-2. Run `npm run build` in `apps/admin` or verify `next build` succeeds.
-3. Confirm the route still returns 403 for non-admin and sets session cookie for admin.
+- ✅ `npm run build` passes
+- ✅ `tsc --noEmit` passes
+- ✅ ESLint: no new errors from these changes
+- ✅ Vercel function logs confirm code now reaches `verifyIdToken` (not `getAdminApp` crash)
+- ⏳ Live login test: go to `https://admin-five-indol-25.vercel.app`, log in with `manojbhatt900@gmail.com` / `Admin@Instantatoz1`

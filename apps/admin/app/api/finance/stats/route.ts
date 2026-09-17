@@ -1,16 +1,6 @@
 import { NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
-import { cookies } from 'next/headers';
-
-async function verifyAdmin() {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get('admin-session')?.value;
-  if (!sessionCookie) return null;
-  try {
-    const claims = await adminAuth().verifySessionCookie(sessionCookie, true);
-    return claims.admin ? claims : null;
-  } catch { return null; }
-}
+import { adminDb } from '@/lib/firebase-admin';
+import { verifyAdmin } from '@/lib/verify-admin';
 
 function isMock(data: any) {
   const id = data?.id || data?.paymentId || '';

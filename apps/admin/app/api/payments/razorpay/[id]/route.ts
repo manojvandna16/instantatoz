@@ -1,23 +1,14 @@
 import { NextResponse } from 'next/server';
-import { adminAuth } from '@/lib/firebase-admin';
-import { cookies } from 'next/headers';
+import { verifyAdmin } from '@/lib/verify-admin';
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Verify Authentication & Admin Authorization
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('admin-session')?.value;
-
-    if (!sessionCookie) {
+    const decodedClaims = await verifyAdmin('payments');
+    if (!decodedClaims) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const decodedClaims = await adminAuth().verifySessionCookie(sessionCookie, true);
-    if (!decodedClaims.admin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const resolvedParams = await params;

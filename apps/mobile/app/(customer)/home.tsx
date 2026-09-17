@@ -9,6 +9,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
 import { SERVICE_CATEGORIES, COLORS, JOB_STATUS } from '../../src/constants';
 import { listenCustomerJobs, Job } from '../../src/services/job.service';
+import { listenNotifications, AppNotification } from '../../src/services/notifications.service';
+import { Ionicons } from '@expo/vector-icons';
 
 const ACTIVE_STATUSES = [
   JOB_STATUS.FINDING_WORKERS, JOB_STATUS.WORKER_ASSIGNED,
@@ -37,6 +39,7 @@ export default function HomeScreen() {
   const firstName = userProfile?.name?.split(' ')[0] || '';
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
 
   useEffect(() => {
     if (!userProfile?.uid) return;
@@ -44,7 +47,16 @@ export default function HomeScreen() {
       setJobs(list);
       setLoadingJobs(false);
     });
-    return unsub;
+
+    const unsubNotifs = listenNotifications(userProfile.uid, 'customer', (notifs) => {
+      const count = notifs.filter(n => !n.read && n.userId !== 'ALL_USERS' && !n.userId.startsWith('FILTERED:')).length;
+      setUnreadNotifs(count);
+    });
+
+    return () => {
+      unsub();
+      unsubNotifs();
+    };
   }, [userProfile?.uid]);
 
   const activeJob = jobs.find((j) => ACTIVE_STATUSES.includes(j.status as any));
@@ -59,9 +71,19 @@ export default function HomeScreen() {
             <Text style={styles.greeting}>{firstName ? `Hello, ${firstName} 👋` : 'Welcome 👋'}</Text>
             <Text style={styles.subGreeting}>What do you need help with today?</Text>
           </View>
-          <TouchableOpacity style={styles.profileBtn} onPress={() => router.push('/(shared)/profile')}>
-            <Text style={styles.profileInitial}>{firstName.charAt(0).toUpperCase() || '?'}</Text>
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.bellBtn} onPress={() => router.push('/(customer)/notifications' as any)}>
+              <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
+              {unreadNotifs > 0 && (
+                <View style={styles.badgeCount}>
+                  <Text style={styles.badgeCountText}>{unreadNotifs}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.profileBtn} onPress={() => router.push('/(shared)/profile')}>
+              <Text style={styles.profileInitial}>{firstName.charAt(0).toUpperCase() || '?'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Active Job Banner */}
@@ -169,6 +191,10 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, paddingBottom: 12, backgroundColor: COLORS.white },
   greeting: { fontSize: 22, fontWeight: '800', color: COLORS.text },
   subGreeting: { fontSize: 13, color: COLORS.textMuted, marginTop: 2 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  bellBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.background, alignItems: 'center', justifyContent: 'center' },
+  badgeCount: { position: 'absolute', top: -2, right: -2, backgroundColor: COLORS.danger, borderRadius: 10, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: COLORS.white },
+  badgeCountText: { color: COLORS.white, fontSize: 10, fontWeight: 'bold' },
   profileBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
   profileInitial: { color: '#fff', fontSize: 18, fontWeight: '700' },
   activeBanner: { margin: 16, marginBottom: 0, backgroundColor: '#1d4ed8', borderRadius: 14, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

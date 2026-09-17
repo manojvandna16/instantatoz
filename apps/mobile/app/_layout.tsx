@@ -21,6 +21,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '../src/hooks/useAuth';
+import { useAuthStore } from '../src/store/authStore';
 import { LoadingScreen } from '../src/components/ui/LoadingScreen';
 import { registerForPushNotificationsAsync, setupForegroundNotificationListener } from '../src/services/notifications.service';
 
@@ -46,10 +47,12 @@ function NavigationGuard() {
   }, []);
 
   useEffect(() => {
-    if (uid) {
-      registerForPushNotificationsAsync().catch(console.warn);
+    if (uid && isAuthChecked) {
+      // Pass userType so FCM token is saved with correct targeting (customer vs worker)
+      const userType = useAuthStore.getState().userProfile?.activeMode === 'worker' ? 'worker' : 'customer';
+      registerForPushNotificationsAsync(userType).catch(console.warn);
     }
-  }, [uid]);
+  }, [uid, isAuthChecked]);
 
   useEffect(() => {
     if (!isAuthChecked) return;

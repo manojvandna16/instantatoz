@@ -20,6 +20,7 @@ export default function WorkerLayout() {
       <Tabs.Screen name="dashboard" options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📊" label="Home" focused={focused} /> }} />
       <Tabs.Screen name="jobs" options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📋" label="Jobs" focused={focused} /> }} />
       <Tabs.Screen name="earnings" options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="💰" label="Earnings" focused={focused} /> }} />
+      <Tabs.Screen name="notifications" options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🔔" label="Alerts" focused={focused} /> }} />
       <Tabs.Screen name="settings" options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="⚙️" label="Settings" focused={focused} /> }} />
       <Tabs.Screen name="active-job" options={{ href: null }} />
     </Tabs>
