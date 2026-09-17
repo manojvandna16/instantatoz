@@ -1,5 +1,9 @@
 import { adminDb } from './firebase-admin';
 
+/**
+ * Send FCM push notification to a specific user (customer or worker).
+ * Also saves notification to Firestore for in-app inbox.
+ */
 export async function sendPushNotification(
   userId: string,
   title: string,
@@ -7,66 +11,149 @@ export async function sendPushNotification(
   data: Record<string, any> = {}
 ) {
   try {
-    // 1. Check user notification preferences
-    const userDoc = await adminDb().collection('users').doc(userId).get();
-    if (!userDoc.exists) return;
-    const userData = userDoc.data();
-    
-    // If settings explicitly disable notifications, skip sending push
-    if (userData?.settings?.notifications === false) {
-      console.log(`Push notifications disabled for user ${userId}`);
-      return;
-    }
-
-    // 2. Save notification to user's notifications collection for the in-app inbox
-    const notificationRef = adminDb().collection('notifications').doc();
-    await notificationRef.set({
-      id: notificationRef.id,
+    // 1. Save to notifications collection (in-app inbox)
+    const { FieldValue } = await import('firebase-admin/firestore');
+    await adminDb().collection('notifications').add({
       userId,
       title,
       body,
+      type: data.type || 'SYSTEM',
       data,
-      isRead: false,
-      createdAt: new Date(),
+      read: false,
+      createdAt: FieldValue.serverTimestamp(),
     });
 
-    // 3. Get device tokens
-    const devicesSnap = await adminDb().collection('users').doc(userId).collection('devices').get();
-    if (devicesSnap.empty) {
-      console.log(`No devices found for user ${userId}`);
+    // 2. Get FCM device tokens from users collection (customers)
+    const userDevicesSnap = await adminDb()
+      .collection('users').doc(userId).collection('devices').get();
+
+    // 3. Also try workers collection (workers)
+    const workerDevicesSnap = await adminDb()
+      .collection('workers').doc(userId).collection('devices').get();
+
+    const fcmTokens: string[] = [];
+
+    userDevicesSnap.forEach(doc => {
+      const { fcmToken } = doc.data();
+      if (fcmToken) fcmTokens.push(fcmToken);
+    });
+    workerDevicesSnap.forEach(doc => {
+      const { fcmToken } = doc.data();
+      if (fcmToken && !fcmTokens.includes(fcmToken)) fcmTokens.push(fcmToken);
+    });
+
+    if (fcmTokens.length === 0) {
+      console.log(`No FCM device tokens found for user ${userId}`);
       return;
     }
 
-    const expoPushTokens: string[] = [];
-    devicesSnap.forEach(doc => {
-      const { expoToken } = doc.data();
-      if (expoToken) expoPushTokens.push(expoToken);
-    });
+    // 4. Send via FCM using Admin SDK
+    const { getMessaging } = await import('firebase-admin/messaging');
+    const messaging = getMessaging();
 
-    if (expoPushTokens.length === 0) return;
+    const sendPromises = fcmTokens.map(token =>
+      messaging.send({
+        token,
+        notification: { title, body },
+        data: Object.fromEntries(
+          Object.entries({ ...data, notificationId: userId })
+            .map(([k, v]) => [k, String(v)])
+        ),
+        android: {
+          priority: 'high',
+          notification: { sound: 'default', channelId: 'default' },
+        },
+        apns: {
+          payload: { aps: { sound: 'default', badge: 1 } },
+        },
+      }).catch(err => {
+        console.error(`FCM send failed for token ${token.substring(0, 20)}:`, err.message);
+        return null;
+      })
+    );
 
-    // 4. Send via Expo Push API
-    const messages = expoPushTokens.map(pushToken => ({
-      to: pushToken,
-      sound: 'default',
+    const results = await Promise.all(sendPromises);
+    const sent = results.filter(r => r !== null).length;
+    console.log(`Push sent to ${sent}/${fcmTokens.length} devices for user ${userId}`);
+  } catch (error) {
+    console.error('Error in sendPushNotification:', error);
+  }
+}
+
+/**
+ * Send FCM push notification to multiple workers (nearby workers for a new job).
+ * Sends one FCM notification per worker concurrently.
+ */
+export async function notifyNearbyWorkers(
+  workerIds: string[],
+  title: string,
+  body: string,
+  data: Record<string, any> = {}
+) {
+  if (!workerIds || workerIds.length === 0) return;
+
+  const { FieldValue } = await import('firebase-admin/firestore');
+  const { getMessaging } = await import('firebase-admin/messaging');
+  const messaging = getMessaging();
+
+  const allTokens: { workerId: string; token: string }[] = [];
+
+  // Fetch all tokens concurrently
+  await Promise.all(
+    workerIds.map(async (workerId) => {
+      try {
+        const snap = await adminDb()
+          .collection('workers').doc(workerId).collection('devices').get();
+        snap.forEach(doc => {
+          const { fcmToken } = doc.data();
+          if (fcmToken) allTokens.push({ workerId, token: fcmToken });
+        });
+      } catch (err) {
+        console.error(`Failed to fetch devices for worker ${workerId}`, err);
+      }
+    })
+  );
+
+  if (allTokens.length === 0) {
+    console.log('No worker devices found for job notification');
+    return;
+  }
+
+  // Save one in-app notification per worker
+  const batch = adminDb().batch();
+  for (const workerId of workerIds) {
+    const ref = adminDb().collection('notifications').doc();
+    batch.set(ref, {
+      userId: workerId,
       title,
       body,
-      data: { ...data, notificationId: notificationRef.id },
-    }));
-
-    const response = await fetch('https://exp.host/--/api/v2/push/send', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Accept-encoding': 'gzip, deflate',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(messages),
+      type: data.type || 'NEW_JOB',
+      data,
+      read: false,
+      createdAt: FieldValue.serverTimestamp(),
     });
-
-    const result = await response.json();
-    console.log('Push notification dispatched:', result);
-  } catch (error) {
-    console.error('Error sending push notification:', error);
   }
+  await batch.commit();
+
+  // Send FCM to all devices
+  const sendPromises = allTokens.map(({ token }) =>
+    messaging.send({
+      token,
+      notification: { title, body },
+      data: Object.fromEntries(
+        Object.entries(data).map(([k, v]) => [k, String(v)])
+      ),
+      android: {
+        priority: 'high',
+        notification: { sound: 'default', channelId: 'default' },
+      },
+      apns: {
+        payload: { aps: { sound: 'default', badge: 1 } },
+      },
+    }).catch(() => null)
+  );
+
+  const results = await Promise.all(sendPromises);
+  const sent = results.filter(r => r !== null).length;
+  console.log(`Job notification sent to ${sent}/${allTokens.length} worker devices`);
 }

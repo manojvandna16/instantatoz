@@ -365,6 +365,34 @@ export async function POST(req: NextRequest) {
         });
       });
 
+      // Notify nearby/relevant workers about the new job
+      try {
+        const jobDoc = await adminDb().collection('jobs').doc(jobId).get();
+        const jobInfo = jobDoc.data();
+        if (jobInfo && jobInfo.category) {
+          // Find all online + approved workers in the same category
+          const workersSnap = await adminDb().collection('workers')
+            .where('isOnline', '==', true)
+            .where('verificationStatus', '==', 'APPROVED')
+            .where('category', '==', jobInfo.category)
+            .get();
+
+          const workerIds = workersSnap.docs.map(d => d.id);
+          if (workerIds.length > 0) {
+            const { notifyNearbyWorkers } = await import('@/lib/notifications');
+            await notifyNearbyWorkers(
+              workerIds,
+              '🔔 New Job Available!',
+              `New ${jobInfo.category} job in your area — tap to view and accept.`,
+              { type: 'NEW_JOB', jobId }
+            );
+          }
+        }
+      } catch (notifyErr) {
+        console.error('Failed to notify workers about new job:', notifyErr);
+        // Don't fail the payment verification if notification fails
+      }
+
       return NextResponse.json({ success: true, verified: true });
     }
 
