@@ -1,11 +1,11 @@
-﻿/**
+/**
  * app/(auth)/otp.tsx — OTP verification screen
  */
 import { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { verifyOTP } from '../../src/services/auth.service';
+import { verifyOTP, sendOTP } from '../../src/services/auth.service';
 import { COLORS } from '../../src/constants';
 
 export default function OTPScreen() {
@@ -13,6 +13,7 @@ export default function OTPScreen() {
   const { phone } = useLocalSearchParams<{ phone: string }>();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [error, setError] = useState('');
   const [resendTimer, setResendTimer] = useState(30);
   const inputRef = useRef<TextInput>(null);
@@ -28,7 +29,7 @@ export default function OTPScreen() {
     if (otp.length !== 6 || loading) return;
     const confirmation = (global as any).__otpConfirmation;
     if (!confirmation) {
-      setError('Session expired. Please go back and try again.');
+      setError('Session expired. Please go back and request a new OTP.');
       return;
     }
     setError('');
@@ -37,16 +38,36 @@ export default function OTPScreen() {
       await verifyOTP(confirmation, otp);
       // Auth state change in root layout handles redirect automatically
     } catch (err: any) {
-      console.error('[OTP] Error:', err);
+      console.error('[OTP] Error:', err.code, err.message);
       if (err.code === 'auth/invalid-verification-code') {
-        setError('Invalid OTP. Please check and try again.');
+        setError('Invalid OTP. Please enter the correct 6-digit code.');
       } else if (err.code === 'auth/code-expired') {
         setError('OTP expired. Please resend.');
+      } else if (err.code === 'auth/missing-verification-code') {
+        setError('Please enter the OTP you received.');
       } else {
-        setError('Verification failed. Please try again.');
+        setError(`Verification failed: ${err.message || 'Please try again.'}`);
       }
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleResend() {
+    if (resendTimer > 0 || resending || !phone) return;
+    setResending(true);
+    setError('');
+    setOtp('');
+    try {
+      const confirmation = await sendOTP('+91' + phone);
+      (global as any).__otpConfirmation = confirmation;
+      setResendTimer(30);
+      Alert.alert('OTP Sent!', `A new OTP has been sent to +91 ${phone}.`);
+    } catch (err: any) {
+      console.error('[OTP Resend] Error:', err.code, err.message);
+      setError(`Could not resend OTP: ${err.message || 'Please try again.'}`);
+    } finally {
+      setResending(false);
     }
   }
 
@@ -62,6 +83,7 @@ export default function OTPScreen() {
           OTP sent to{' '}
           <Text style={styles.phone}>+91 {phone}</Text>
         </Text>
+        <Text style={styles.hint}>Check your SMS inbox. It may take up to 60 seconds.</Text>
 
         <TextInput
           ref={inputRef}
@@ -89,14 +111,19 @@ export default function OTPScreen() {
           )}
         </TouchableOpacity>
 
+        {/* Resend OTP — properly resends, doesn't just go back */}
         <TouchableOpacity
-          onPress={() => router.back()}
-          disabled={resendTimer > 0}
+          onPress={handleResend}
+          disabled={resendTimer > 0 || resending}
           style={styles.resend}
         >
-          <Text style={[styles.resendText, resendTimer > 0 && styles.resendDisabled]}>
-            {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
-          </Text>
+          {resending ? (
+            <ActivityIndicator size="small" color={COLORS.primary} />
+          ) : (
+            <Text style={[styles.resendText, resendTimer > 0 && styles.resendDisabled]}>
+              {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -109,14 +136,15 @@ const styles = StyleSheet.create({
   back: { marginBottom: 32, marginTop: 8 },
   backText: { fontSize: 15, color: COLORS.primary, fontWeight: '600' },
   title: { fontSize: 28, fontWeight: '800', color: COLORS.text, marginBottom: 8 },
-  subtitle: { fontSize: 15, color: COLORS.textMuted, marginBottom: 32 },
+  subtitle: { fontSize: 15, color: COLORS.textMuted, marginBottom: 4 },
+  hint: { fontSize: 12, color: COLORS.textMuted, marginBottom: 28, fontStyle: 'italic' },
   phone: { fontWeight: '700', color: COLORS.text },
   input: { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 16, fontSize: 24, letterSpacing: 8, textAlign: 'center', marginBottom: 8, color: COLORS.text },
   error: { color: COLORS.danger, fontSize: 13, marginBottom: 12, textAlign: 'center' },
   btn: { backgroundColor: COLORS.primary, paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginTop: 8 },
   btnDisabled: { backgroundColor: COLORS.border },
   btnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  resend: { marginTop: 20, alignItems: 'center' },
+  resend: { marginTop: 20, alignItems: 'center', minHeight: 30, justifyContent: 'center' },
   resendText: { color: COLORS.primary, fontSize: 14, fontWeight: '600' },
   resendDisabled: { color: COLORS.textMuted },
 });
