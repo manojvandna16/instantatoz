@@ -15,6 +15,9 @@ interface Notification {
   read?: boolean;
   createdAt: any;
   data?: Record<string, any>;
+  imageUrl?: string;
+  link?: string;
+  userType?: string | null;
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -39,6 +42,9 @@ export default function NotificationsPage() {
   const [showSendModal, setShowSendModal] = useState(false);
   const [sendLoading, setSendLoading] = useState(false);
   const [targetUserId, setTargetUserId] = useState('');
+  const [targetUserType, setTargetUserType] = useState<'all' | 'customer' | 'worker'>('all');
+  const [pushImageUrl, setPushImageUrl] = useState('');
+  const [pushLink, setPushLink] = useState('');
   const [pushTitle, setPushTitle] = useState('');
   const [pushBody, setPushBody] = useState('');
   const [pushResult, setPushResult] = useState<{success?: boolean; message?: string} | null>(null);
@@ -74,9 +80,12 @@ export default function NotificationsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           targetUserId: targetUserId.trim() || null,
+          targetUserType: targetUserType !== 'all' ? targetUserType : undefined,
           title: pushTitle,
           body: pushBody,
-          type: 'ADMIN_BROADCAST'
+          type: 'ADMIN_BROADCAST',
+          imageUrl: pushImageUrl.trim() || undefined,
+          link: pushLink.trim() || undefined,
         })
       });
       const data = await res.json();
@@ -84,13 +93,16 @@ export default function NotificationsPage() {
       
       setPushResult({ success: true, message: `Successfully sent to ${data.sentCount} devices.` });
       // Reset form after short delay
-      setTimeout(() => {
-        setShowSendModal(false);
-        setPushTitle('');
-        setPushBody('');
-        setTargetUserId('');
-        setPushResult(null);
-      }, 3000);
+       setTimeout(() => {
+         setShowSendModal(false);
+         setPushTitle('');
+         setPushBody('');
+         setTargetUserId('');
+         setTargetUserType('all');
+         setPushImageUrl('');
+         setPushLink('');
+         setPushResult(null);
+       }, 3000);
     } catch (err: any) {
       setPushResult({ success: false, message: err.message });
     } finally {
@@ -213,6 +225,26 @@ export default function NotificationsPage() {
                 <NRow label="Sent" value={formatDate(selected.createdAt)} />
               </NSection>
 
+              {selected.imageUrl && (
+                <NSection title="Image">
+                  <div className="px-4 py-3">
+                    <img src={selected.imageUrl} alt="Notification" className="max-w-full rounded-lg border border-gray-800" />
+                  </div>
+                </NSection>
+              )}
+
+              {selected.link && (
+                <NSection title="Deep-link URL">
+                  <NRow label="Link" value={selected.link} />
+                </NSection>
+              )}
+
+              {selected.userType && (
+                <NSection title="Audience">
+                  <NRow label="User Type" value={selected.userType} />
+                </NSection>
+              )}
+
               {selected.data && Object.keys(selected.data).length > 0 && (
                 <NSection title="Payload Data">
                   {Object.entries(selected.data).map(([k, v]) => (
@@ -248,6 +280,34 @@ export default function NotificationsPage() {
                   <input 
                     value={targetUserId} onChange={e => setTargetUserId(e.target.value)} 
                     placeholder="e.g. user12345..."
+                    className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Target Audience (when broadcasting)</label>
+                  <select
+                    value={targetUserType}
+                    onChange={e => setTargetUserType(e.target.value as any)}
+                    className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="all">All Users</option>
+                    <option value="customer">Customers Only</option>
+                    <option value="worker">Workers Only</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Image URL (optional)</label>
+                  <input 
+                    value={pushImageUrl} onChange={e => setPushImageUrl(e.target.value)} 
+                    placeholder="https://example.com/image.png"
+                    className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Deep-link URL (optional — opens when notification tapped)</label>
+                  <input 
+                    value={pushLink} onChange={e => setPushLink(e.target.value)} 
+                    placeholder="https://www.instantatoz.online/dashboard/jobs"
                     className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500" 
                   />
                 </div>
