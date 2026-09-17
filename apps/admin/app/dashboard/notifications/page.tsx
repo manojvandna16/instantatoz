@@ -84,7 +84,7 @@ export default function NotificationsPage() {
     return searchOk && typeOk && audienceOk;
   });
 
-  const unreadCount = notifs.filter(n => !n.read).length;
+  const unreadCount = notifs.filter(n => !n.read && n.userId !== 'ALL_USERS' && !n.userId?.startsWith('FILTERED:')).length;
 
   const handleSendPush = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,7 +218,13 @@ export default function NotificationsPage() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    {n.read ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <AlertCircle className="w-4 h-4 text-blue-400" />}
+                    {n.userId === 'ALL_USERS' || n.userId?.startsWith('FILTERED:') ? (
+                      <span className="text-xs text-gray-500 bg-gray-800/50 px-2 py-1 rounded">N/A</span>
+                    ) : n.read ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-400" title="Read" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-blue-400" title="Unread" />
+                    )}
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{formatDate(n.createdAt, false)}</td>
                   <td className="px-4 py-3">
