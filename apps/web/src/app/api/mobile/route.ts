@@ -345,20 +345,36 @@ export async function POST(req: NextRequest) {
           updatedAt: now
         });
 
-        // Create Payment record
+        // Create Payment record with ALL important data
         const paymentRef = db.collection('payments').doc(razorpay_payment_id);
         const commissionRate = 0.10; // 10% platform commission
         const commission = Math.round(jobData.totalAmount * commissionRate);
         const workerPayable = jobData.totalAmount - commission;
 
+        // Fetch customer details for the payment record
+        let customerPhone = '';
+        try {
+          const customerDoc = await db.collection('users').doc(uid).get();
+          customerPhone = customerDoc.data()?.phone || '';
+        } catch {}
+
         transaction.set(paymentRef, {
           jobId: jobId,
+          jobNumber: jobData.jobNumber || '',
           customerId: uid,
+          customerName: jobData.customerName || '',
+          customerPhone,
+          category: jobData.category || '',
+          address: jobData.address || '',
+          hourlyRate: jobData.hourlyRate || 0,
+          estimatedHours: jobData.estimatedHours || 0,
+          requiredWorkers: jobData.requiredWorkers || 1,
           grossAmount: jobData.totalAmount,
           platformCommission: commission,
           workerPayable: workerPayable,
           gatewayName: 'RAZORPAY',
           gatewayTransactionId: razorpay_payment_id,
+          razorpayOrderId: razorpay_order_id,
           status: 'CAPTURED',
           createdAt: now,
           updatedAt: now,
@@ -370,21 +386,28 @@ export async function POST(req: NextRequest) {
         const jobDoc = await adminDb().collection('jobs').doc(jobId).get();
         const jobInfo = jobDoc.data();
         if (jobInfo && jobInfo.category) {
-          // Find all online + approved workers in the same category
+          // Find all online workers in the same category 
+          // (check all valid approval statuses used in this system)
           const workersSnap = await adminDb().collection('workers')
             .where('isOnline', '==', true)
-            .where('verificationStatus', '==', 'APPROVED')
             .where('category', '==', jobInfo.category)
             .get();
 
-          const workerIds = workersSnap.docs.map(d => d.id);
+          // Filter in-memory for valid statuses
+          const validStatuses = ['APPROVED', 'ACTIVE', 'VERIFIED'];
+          const workerIds = workersSnap.docs
+            .filter(d => validStatuses.includes(d.data().verificationStatus))
+            .map(d => d.id);
+
+          console.log(`Found ${workerIds.length} online workers for category: ${jobInfo.category}`);
+
           if (workerIds.length > 0) {
             const { notifyNearbyWorkers } = await import('@/lib/notifications');
             await notifyNearbyWorkers(
               workerIds,
               '🔔 New Job Available!',
-              `New ${jobInfo.category} job in your area — tap to view and accept.`,
-              { type: 'NEW_JOB', jobId }
+              `New ${jobInfo.category} job near you — tap to view and accept.`,
+              { type: 'NEW_JOB', jobId, category: jobInfo.category }
             );
           }
         }

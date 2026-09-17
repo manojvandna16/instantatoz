@@ -162,7 +162,7 @@ export default function PaymentsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-800">
-                {['Payment ID', 'Job ID', 'Amount', 'Commission', 'Worker Payable', 'Gateway', 'Status', 'Date'].map(h => (
+                {['Customer', 'Job / Category', 'Amount', 'Commission', 'Worker Payable', 'Status', 'Date', 'Detail'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -182,15 +182,18 @@ export default function PaymentsPage() {
                   onClick={() => openPaymentDetails(p)}
                   className="hover:bg-gray-800/60 transition-colors cursor-pointer"
                 >
-                  <td className="px-4 py-3 font-mono text-xs text-gray-400 flex items-center gap-2">
-                    {p.id.slice(0, 10)}...
+                  <td className="px-4 py-3">
+                    <p className="text-sm font-medium text-white">{(p as any).customerName || '—'}</p>
+                    <p className="text-xs text-gray-500 font-mono">{(p as any).customerPhone || p.customerId?.slice(0,10) + '...'}</p>
                     {isMock(p) && <span className="bg-orange-500/10 text-orange-400 px-1.5 py-0.5 rounded text-[10px]">MOCK</span>}
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-gray-400">{p.jobId?.slice(0, 10)}...</td>
+                  <td className="px-4 py-3">
+                    <p className="text-xs text-gray-300">{(p as any).jobNumber || p.jobId?.slice(0,10) + '...'}</p>
+                    {(p as any).category && <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded mt-0.5 inline-block">{(p as any).category}</span>}
+                  </td>
                   <td className="px-4 py-3 font-semibold text-white">₹{p.grossAmount?.toLocaleString('en-IN')}</td>
                   <td className="px-4 py-3 text-blue-400">₹{p.platformCommission?.toLocaleString('en-IN')}</td>
                   <td className="px-4 py-3 text-green-400">₹{p.workerPayable?.toLocaleString('en-IN')}</td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">{p.gatewayName || 'RAZORPAY'}</td>
                   <td className="px-4 py-3">
                     <span className={clsx('text-xs px-2 py-1 rounded-full font-medium', PAYMENT_STATUS_STYLES[p.status] || 'bg-gray-500/20 text-gray-400')}>
                       {p.status}
@@ -198,6 +201,9 @@ export default function PaymentsPage() {
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
                     {formatPaymentDate(p.createdAt)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <button className="text-xs text-blue-400 hover:text-blue-300 underline">View</button>
                   </td>
                 </tr>
               ))}
@@ -241,19 +247,35 @@ export default function PaymentsPage() {
               {/* Internal Database Information */}
               <section>
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <FileText className="w-4 h-4" /> Internal Payment Data
+                  <FileText className="w-4 h-4" /> Payment Info
+                </h3>
+                <div className="bg-gray-800/30 border border-gray-800 rounded-xl divide-y divide-gray-800">
+                  {[
+                    { label: 'Customer Name', value: (selectedPayment as any).customerName || '—' },
+                    { label: 'Customer Phone', value: (selectedPayment as any).customerPhone || '—' },
+                    { label: 'Job Number', value: (selectedPayment as any).jobNumber || selectedPayment.jobId || '—' },
+                    { label: 'Category', value: (selectedPayment as any).category || '—' },
+                    { label: 'Address', value: (selectedPayment as any).address || '—' },
+                    { label: 'Estimated Hours', value: (selectedPayment as any).estimatedHours ? `${(selectedPayment as any).estimatedHours} hrs` : '—' },
+                    { label: 'Workers Required', value: (selectedPayment as any).requiredWorkers || '—' },
+                    { label: 'Hourly Rate', value: (selectedPayment as any).hourlyRate ? `₹${(selectedPayment as any).hourlyRate}/hr` : '—' },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-start justify-between px-4 py-2.5 gap-4">
+                      <span className="text-xs text-gray-500 shrink-0">{label}</span>
+                      <span className="text-xs text-gray-300 text-right break-all">{String(value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* Financial Breakdown */}
+              <section>
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <IndianRupee className="w-4 h-4" /> Financial Breakdown
                 </h3>
                 <div className="bg-gray-800/30 border border-gray-800 rounded-xl p-4 grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-gray-500">Internal ID</p>
-                    <p className="text-sm text-gray-300 font-mono mt-0.5">{selectedPayment.id}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Job ID</p>
-                    <p className="text-sm text-gray-300 font-mono mt-0.5">{selectedPayment.jobId || 'Not available'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Amount</p>
+                    <p className="text-xs text-gray-500">Gross Amount</p>
                     <p className="text-sm font-bold text-white mt-0.5">₹{(selectedPayment.grossAmount || 0).toLocaleString('en-IN')}</p>
                   </div>
                   <div>
@@ -265,7 +287,7 @@ export default function PaymentsPage() {
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Platform Commission</p>
+                    <p className="text-xs text-gray-500">Platform Commission (10%)</p>
                     <p className="text-sm text-blue-400 mt-0.5">₹{(selectedPayment.platformCommission || 0).toLocaleString('en-IN')}</p>
                   </div>
                   <div>
@@ -275,6 +297,14 @@ export default function PaymentsPage() {
                   <div className="col-span-2">
                     <p className="text-xs text-gray-500">Payment Date</p>
                     <p className="text-sm text-gray-300 mt-0.5">{formatPaymentDate(selectedPayment.createdAt)}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-500">Razorpay Order ID</p>
+                    <p className="text-xs text-gray-300 font-mono mt-0.5 break-all">{(selectedPayment as any).razorpayOrderId || selectedPayment.gatewayTransactionId || '—'}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-500">Razorpay Payment ID</p>
+                    <p className="text-xs text-gray-300 font-mono mt-0.5 break-all">{selectedPayment.gatewayTransactionId || selectedPayment.id}</p>
                   </div>
                 </div>
               </section>
